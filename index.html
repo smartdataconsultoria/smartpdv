@@ -41,26 +41,28 @@
 <!-- HOME -->
 <div id="sc-home" class="screen">
   <div class="header">
-    <div class="header-top">
-      <div class="logo"><span>Smart</span>PDV</div>
-      <button class="theme-btn" onclick="toggleTema()">
-        <span id="theme-icon">🌙</span>
-        <div class="tog-track" id="tog-track"><div class="tog-thumb"></div></div>
-        <span id="theme-lbl" style="font-size:10px">DARK</span>
-      </button>
-    </div>
-    <div class="h-row">
-      <div>
-        <div class="h-greeting" id="greeting">Bom dia!</div>
-        <div style="font-size:13px;font-weight:600;color:var(--brand)" id="home-promotor-nome"></div>
-        <div class="h-sub" id="hdate">—</div>
+    <div style="max-width:var(--max-w);margin:0 auto;width:100%">
+      <div class="header-top">
+        <div class="logo"><span>Smart</span>PDV</div>
+        <button class="theme-btn" onclick="toggleTema()">
+          <span id="theme-icon">🌙</span>
+          <div class="tog-track" id="tog-track"><div class="tog-thumb"></div></div>
+          <span id="theme-lbl" style="font-size:10px">DARK</span>
+        </button>
       </div>
-      <div class="h-time" id="hclock">--:--</div>
+      <div class="h-row">
+        <div>
+          <div class="h-greeting" id="greeting">Bom dia!</div>
+          <div style="font-size:13px;font-weight:600;color:var(--brand);margin-top:1px" id="home-promotor-nome"></div>
+          <div class="h-sub" id="hdate">—</div>
+        </div>
+        <div class="h-time" id="hclock">--:--</div>
+      </div>
+      <div class="loja-pill" onclick="abrirSeletorLoja()" id="loja-pill-home">
+        <span>🏪</span><span id="loja-header">Selecionar loja</span><span style="color:var(--text3);font-size:10px;margin-left:2px">▾</span>
+      </div>
+      <div id="seletor-lojas" style="display:none"></div>
     </div>
-    <div class="loja-pill" onclick="abrirSeletorLoja()" id="loja-pill-home">
-      <span>🏪</span><span id="loja-header">Selecionar loja</span><span style="color:var(--text3);font-size:10px">▾</span>
-    </div>
-    <div id="seletor-lojas" style="display:none"></div>
   </div>
   <div class="screen-body">
     <div class="card" style="padding:0;overflow:hidden">
@@ -107,7 +109,7 @@
 
 <!-- ESTOQUE -->
 <div id="sc-estoque" class="screen">
-  <div class="header"><div class="header-top"><div class="logo"><span>Smart</span>PDV</div><div class="h-time" id="clk-est">--:--</div></div><div class="h-row"><div><div class="h-title">Estoque & Preço</div><div class="h-sub" id="loja-est">—</div></div></div></div>
+  <div class="header"><div style="max-width:var(--max-w);margin:0 auto;width:100%"><div class="header-top"><div class="logo"><span>Smart</span>PDV</div><div class="h-time" id="clk-est">--:--</div></div></div></div><div class="h-row"><div><div class="h-title">Estoque & Preço</div><div class="h-sub" id="loja-est">—</div></div></div></div>
   <div class="screen-body">
     <div id="banner-nao-salvo" class="alert-banner amber pulse" style="display:none">
       <div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">⚠️</span><div><div style="font-size:12px;font-weight:700;color:var(--amber)">Dados não salvos!</div><div style="font-size:11px;color:var(--text2)">Salve antes de fechar.</div></div></div>
@@ -122,7 +124,7 @@
 
 <!-- CHECKLIST -->
 <div id="sc-checklist" class="screen">
-  <div class="header"><div class="header-top"><div class="logo"><span>Smart</span>PDV</div></div><div class="h-row"><div><div class="h-title">Checklist do Dia</div><div class="h-sub" id="loja-check">—</div></div></div></div>
+  <div class="header"><div style="max-width:var(--max-w);margin:0 auto;width:100%"><div class="header-top"><div class="logo"><span>Smart</span>PDV</div></div></div></div><div class="h-row"><div><div class="h-title">Checklist do Dia</div><div class="h-sub" id="loja-check">—</div></div></div></div>
   <div class="screen-body">
     <div class="card">
       <div class="ring-wrap">
@@ -176,7 +178,7 @@
 
 <!-- CONCORRENTES -->
 <div id="sc-concorrentes" class="screen">
-  <div class="header"><div class="header-top"><div class="logo"><span>Smart</span>PDV</div></div><div class="h-row"><div><div class="h-title">Concorrentes</div><div class="h-sub" id="loja-conc">—</div></div></div></div>
+  <div class="header"><div style="max-width:var(--max-w);margin:0 auto;width:100%"><div class="header-top"><div class="logo"><span>Smart</span>PDV</div></div></div></div><div class="h-row"><div><div class="h-title">Concorrentes</div><div class="h-sub" id="loja-conc">—</div></div></div></div>
   <div class="screen-body">
     <div class="ibox ibox-blue">🏁 Registre os preços dos concorrentes. O diferencial é calculado automaticamente.</div>
     <div id="lista-conc"></div>
@@ -186,7 +188,7 @@
 
 <!-- AVARIAS -->
 <div id="sc-avarias" class="screen">
-  <div class="header"><div class="header-top"><div class="logo"><span>Smart</span>PDV</div></div><div class="h-row"><div><div class="h-title">Avarias</div><div class="h-sub" id="loja-av">—</div></div></div></div>
+  <div class="header"><div style="max-width:var(--max-w);margin:0 auto;width:100%"><div class="header-top"><div class="logo"><span>Smart</span>PDV</div></div></div></div><div class="h-row"><div><div class="h-title">Avarias</div><div class="h-sub" id="loja-av">—</div></div></div></div>
   <div class="screen-body">
     <div class="card">
       <div class="ct">Registrar avaria</div>
@@ -212,7 +214,7 @@
 
 <!-- DESEMPENHO -->
 <div id="sc-desempenho" class="screen">
-  <div class="header"><div class="header-top"><div class="logo"><span>Smart</span>PDV</div></div><div class="h-row"><div><div class="h-title">Desempenho</div><div class="h-sub" id="loja-desemp">—</div></div></div></div>
+  <div class="header"><div style="max-width:var(--max-w);margin:0 auto;width:100%"><div class="header-top"><div class="logo"><span>Smart</span>PDV</div></div></div></div><div class="h-row"><div><div class="h-title">Desempenho</div><div class="h-sub" id="loja-desemp">—</div></div></div></div>
   <div class="screen-body">
     <div class="card"><div class="ct">Faturamento do mês</div>
       <div class="metrics m2" style="margin-bottom:12px">
@@ -240,7 +242,7 @@
 
 <!-- METAS (nova tela) -->
 <div id="sc-metas" class="screen">
-  <div class="header"><div class="header-top"><div class="logo"><span>Smart</span>PDV</div></div><div class="h-row"><div><div class="h-title">Metas</div><div class="h-sub" id="loja-metas">—</div></div></div></div>
+  <div class="header"><div style="max-width:var(--max-w);margin:0 auto;width:100%"><div class="header-top"><div class="logo"><span>Smart</span>PDV</div></div></div></div><div class="h-row"><div><div class="h-title">Metas</div><div class="h-sub" id="loja-metas">—</div></div></div></div>
   <div class="screen-body">
     <div class="card"><div class="ct">Nova meta</div>
       <div class="field"><label>Descrição da meta</label><input type="text" id="meta-nome" placeholder="Ex: Volume Produto A — Atacadão"></div>
@@ -260,7 +262,7 @@
 
 <!-- OPORTUNIDADES -->
 <div id="sc-oportunidades" class="screen">
-  <div class="header"><div class="header-top"><div class="logo"><span>Smart</span>PDV</div></div><div class="h-row"><div><div class="h-title">Oportunidades</div><div class="h-sub" id="loja-op">—</div></div></div></div>
+  <div class="header"><div style="max-width:var(--max-w);margin:0 auto;width:100%"><div class="header-top"><div class="logo"><span>Smart</span>PDV</div></div></div></div><div class="h-row"><div><div class="h-title">Oportunidades</div><div class="h-sub" id="loja-op">—</div></div></div></div>
   <div class="screen-body">
     <div class="card"><div class="ct">Nova oportunidade</div>
       <div class="field"><label>Tipo</label><select id="op-tipo"><option value="">Selecione</option><option>Sugestão de cadastro de produto</option><option>Promoção</option><option>Ação pontual</option><option>Negociação de espaço</option><option>Ativação de ponto extra</option><option>Outro</option></select></div>
