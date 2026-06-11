@@ -448,16 +448,55 @@ input, select, textarea, button { font-family: inherit; }
   padding: 12px; margin-bottom: 8px;
 }
 .est-item-nome { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
-.est-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.est-inputs label { font-size: 11px; color: var(--text3); display: block; margin-bottom: 3px; }
-.est-inputs input {
+
+/* Grid 2x2 para os 4 campos principais */
+.est-grid-campos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.est-grid-campos label {
+  font-size: 11px; color: var(--text3);
+  display: block; margin-bottom: 3px;
+}
+.est-grid-campos input {
   width: 100%; padding: 8px 10px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-xs);
   font-size: 14px; background: var(--bg);
   outline: none;
 }
-.est-inputs input:focus { border-color: var(--brand); background: #fff; }
+.est-grid-campos input:focus { border-color: var(--brand); background: #fff; }
+
+/* Ruptura em linha separada, compacta */
+.est-ruptura-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 8px;
+}
+.est-ruptura-row label {
+  font-size: 11px; color: var(--text3); white-space: nowrap;
+}
+.est-ruptura-row select {
+  padding: 6px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: 13px; background: var(--bg);
+  outline: none; cursor: pointer;
+}
+.est-ruptura-row select:focus { border-color: var(--brand); }
+
+/* Mantém .est-inputs para compatibilidade */
+.est-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.est-inputs label { font-size: 11px; color: var(--text3); display: block; margin-bottom: 3px; }
+.est-inputs input, .est-inputs select {
+  width: 100%; padding: 8px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: 14px; background: var(--bg);
+  outline: none;
+}
+.est-inputs input:focus, .est-inputs select:focus { border-color: var(--brand); background: #fff; }
 .est-status {
   display: inline-flex; align-items: center; gap: 4px;
   font-size: 11px; font-weight: 600;
@@ -759,31 +798,23 @@ input, select, textarea, button { font-family: inherit; }
 }
 .sim-produto-nome { font-size: 11px; color: var(--text3); }
 
-/* Grid principal do painel de concorrente: preço | estoque | venda | diferença */
-.sim-conc-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr auto;
-  gap: 8px; align-items: end;
+/* Linha flex para campos do concorrente */
+.sim-linha {
+  display: flex; gap: 8px; align-items: flex-end;
 }
-.sim-conc-grid label {
+.sim-linha label {
   font-size: 10px; font-weight: 600; color: var(--text3);
   display: block; margin-bottom: 4px;
 }
-/* Em telas estreitas empilha em 2 colunas */
-@media (max-width: 480px) {
-  .sim-conc-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .sim-diff-wrap { grid-column: span 2; }
-}
-.sim-preco-input {
+.sim-linha input {
   width: 100%; padding: 8px 10px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-xs);
-  font-size: 14px; font-family: 'DM Mono', monospace;
+  font-size: 13px; font-family: 'DM Mono', monospace;
   background: var(--bg); outline: none;
 }
-.sim-preco-input:focus { border-color: var(--brand); background: #fff; }
+.sim-linha input:focus { border-color: var(--brand); background: #fff; }
+/* sim-preco-input — estilos migrados para .sim-linha input */
 
 /* ── Badge de diferença inline ── */
 .sim-diff-wrap { min-width: 80px; }
