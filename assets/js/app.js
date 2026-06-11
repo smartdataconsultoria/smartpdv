@@ -245,24 +245,28 @@ async function renderEstoque() {
           <span class="sim-conc-nome">${s.empresa_concorrente}</span>
           <span class="sim-produto-nome">${s.produto_similar}</span>
         </div>
-        <div class="sim-conc-grid">
-          <div>
+        <!-- Linha 1 do concorrente: Preço + Diferença -->
+        <div class="sim-linha">
+          <div style="flex:1">
             <label>Preço concorrente (R$)</label>
             <input type="text" class="sim-preco-input" placeholder="0,00" inputmode="decimal"
               data-meu-preco="${p.preco_sugerido || 0}"
               oninput="calcDiffInline(this)">
           </div>
-          <div>
+          <div class="sim-diff-wrap">
+            <label>Diferença vs meu preço</label>
+            <div class="sim-diff-badge" id="diff-inline-${s.id}">—</div>
+          </div>
+        </div>
+        <!-- Linha 2 do concorrente: Estoque + Venda -->
+        <div class="sim-linha" style="margin-top:8px">
+          <div style="flex:1">
             <label>Estoque concorrente</label>
             <input type="number" class="sim-estoque-conc" placeholder="0,00" inputmode="decimal" step="0.01" min="0">
           </div>
-          <div>
+          <div style="flex:1">
             <label>Venda concorrente</label>
             <input type="number" class="sim-venda-conc" placeholder="0,00" inputmode="decimal" step="0.01" min="0">
-          </div>
-          <div class="sim-diff-wrap">
-            <label>Diferença</label>
-            <div class="sim-diff-badge" id="diff-inline-${s.id}">—</div>
           </div>
         </div>
       </div>
@@ -275,8 +279,8 @@ async function renderEstoque() {
         <div class="est-item-preco-ref">${p.preco_sugerido ? moeda(p.preco_sugerido) : ''}</div>
       </div>
 
-      <!-- Linha 1: Estoque sistema + Contagem física -->
-      <div class="est-inputs">
+      <!-- Grid 2x2: Estoque sistema | Contagem física / Qtd vendida | Preço atual -->
+      <div class="est-grid-campos">
         <div>
           <label>Estoque sistema</label>
           <input type="number" class="est-sistema" placeholder="0,00" inputmode="decimal" step="0.01" min="0" oninput="calcStatus(this)">
@@ -285,10 +289,6 @@ async function renderEstoque() {
           <label>Contagem física</label>
           <input type="number" class="est-fisico" placeholder="0,00" inputmode="decimal" step="0.01" min="0" oninput="calcStatus(this)">
         </div>
-      </div>
-
-      <!-- Linha 2: Qtd vendida + Preço atual + Ruptura -->
-      <div class="est-inputs" style="margin-top:0">
         <div>
           <label>Qtd vendida</label>
           <input type="number" class="est-vendido" placeholder="0,00" inputmode="decimal" step="0.01" min="0">
@@ -297,13 +297,14 @@ async function renderEstoque() {
           <label>Preço atual (R$)</label>
           <input type="text" class="est-preco" placeholder="0,00" inputmode="decimal">
         </div>
-        <div>
-          <label>Ruptura?</label>
-          <select class="est-ruptura">
-            <option value="nao">Não</option>
-            <option value="sim">Sim</option>
-          </select>
-        </div>
+      </div>
+      <!-- Ruptura em linha separada -->
+      <div class="est-ruptura-row">
+        <label>Ruptura?</label>
+        <select class="est-ruptura">
+          <option value="nao">Não</option>
+          <option value="sim">Sim</option>
+        </select>
       </div>
 
       <div class="est-status est-ok">✓ OK</div>
