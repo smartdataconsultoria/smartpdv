@@ -759,13 +759,22 @@ input, select, textarea, button { font-family: inherit; }
 }
 .sim-produto-nome { font-size: 11px; color: var(--text3); }
 
-.sim-conc-inputs {
-  display: grid; grid-template-columns: 1fr auto;
+/* Grid principal do painel de concorrente: preço | estoque | venda | diferença */
+.sim-conc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
   gap: 8px; align-items: end;
 }
-.sim-conc-inputs label {
+.sim-conc-grid label {
   font-size: 10px; font-weight: 600; color: var(--text3);
   display: block; margin-bottom: 4px;
+}
+/* Em telas estreitas empilha em 2 colunas */
+@media (max-width: 480px) {
+  .sim-conc-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .sim-diff-wrap { grid-column: span 2; }
 }
 .sim-preco-input {
   width: 100%; padding: 8px 10px;
