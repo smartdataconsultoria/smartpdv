@@ -278,7 +278,7 @@ async function renderEstoque() {
       <div class="est-grid-campos">
         <div>
           <label>Estoque sistema</label>
-          <input type="number" class="est-sistema" placeholder="0,00" inputmode="decimal" step="0.01" min="0" oninput="calcStatus(this)">
+          <input type="number" class="est-sistema" placeholder="0,00" inputmode="decimal" step="0.01" min="0">
         </div>
         <div>
           <label>Qtd vendida</label>
@@ -290,14 +290,13 @@ async function renderEstoque() {
         </div>
         <div>
           <label>Ruptura?</label>
-          <select class="est-ruptura" onchange="calcStatus(this)">
+          <select class="est-ruptura">
             <option value="nao">Não</option>
             <option value="sim">Sim</option>
           </select>
         </div>
       </div>
 
-      <div class="est-status est-ok">✓ OK</div>
 
       <!-- Toggle similar -->
       ${temSimilar ? `
@@ -336,22 +335,7 @@ function calcDiffInline(input) {
   badge.className = 'sim-diff-badge ' + (diff > 0 ? 'diff-pos' : diff < 0 ? 'diff-neg' : '');
 }
 
-function calcStatus(input) {
-  const item   = input.closest('.est-item');
-  const sis    = parseFloat(item.querySelector('.est-sistema')?.value) || 0;
-  const ruptura = item.querySelector('.est-ruptura')?.value === 'sim';
-  const badge  = item.querySelector('.est-status');
-  if (ruptura) {
-    badge.className = 'est-status est-critico';
-    badge.textContent = '⚠️ Ruptura!';
-  } else if (sis === 0) {
-    badge.className = 'est-status est-alert';
-    badge.textContent = '⚡ Estoque zerado';
-  } else {
-    badge.className = 'est-status est-ok';
-    badge.textContent = '✓ OK';
-  }
-}
+// calcStatus removido — badge de status retirado da interface
 
 function itemEstoqueSalvo(e) {
   const div = e.sistema > 0 ? Math.abs(e.sistema - e.fisico) / e.sistema * 100 : 0;
