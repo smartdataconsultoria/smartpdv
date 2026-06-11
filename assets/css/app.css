@@ -460,14 +460,16 @@ input, select, textarea, button { font-family: inherit; }
   font-size: 11px; color: var(--text3);
   display: block; margin-bottom: 3px;
 }
-.est-grid-campos input {
+.est-grid-campos input,
+.est-grid-campos select {
   width: 100%; padding: 8px 10px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-xs);
   font-size: 14px; background: var(--bg);
-  outline: none;
+  outline: none; appearance: none;
 }
-.est-grid-campos input:focus { border-color: var(--brand); background: #fff; }
+.est-grid-campos input:focus,
+.est-grid-campos select:focus { border-color: var(--brand); background: #fff; }
 
 /* Ruptura em linha separada, compacta */
 .est-ruptura-row {
@@ -798,22 +800,27 @@ input, select, textarea, button { font-family: inherit; }
 }
 .sim-produto-nome { font-size: 11px; color: var(--text3); }
 
-/* Linha flex para campos do concorrente */
-.sim-linha {
-  display: flex; gap: 8px; align-items: flex-end;
+/* Grid 3 colunas: Preço | Estoque | Venda */
+.sim-conc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
 }
-.sim-linha label {
+.sim-conc-grid label {
   font-size: 10px; font-weight: 600; color: var(--text3);
   display: block; margin-bottom: 4px;
 }
-.sim-linha input {
+.sim-conc-grid input {
   width: 100%; padding: 8px 10px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-xs);
   font-size: 13px; font-family: 'DM Mono', monospace;
   background: var(--bg); outline: none;
 }
-.sim-linha input:focus { border-color: var(--brand); background: #fff; }
+.sim-conc-grid input:focus { border-color: var(--brand); background: #fff; }
+@media (max-width: 380px) {
+  .sim-conc-grid { grid-template-columns: 1fr 1fr; }
+}
 /* sim-preco-input — estilos migrados para .sim-linha input */
 
 /* ── Badge de diferença inline ── */
