@@ -30,10 +30,16 @@ async function supa(path, options = {}) {
 }
 
 async function supaAuth(cpf, senha) {
-  // Busca na tabela promotores por CPF + senha (bcrypt via Edge Function ou senha hashed)
-  // Por simplicidade inicial usa campos diretos — migre para Supabase Auth em produção
-  const rows = await supa(`promotores?cpf=eq.${encodeURIComponent(cpf)}&senha=eq.${encodeURIComponent(senha)}&select=*`);
-  return rows?.[0] || null;
+  // Tenta CPF formatado e sem formatação
+  const cpfFormatado = cpf.replace(/\D/g,'').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  const cpfDigitos   = cpf.replace(/\D/g,'');
+  for (const c of [cpfFormatado, cpfDigitos]) {
+    try {
+      const rows = await supa(`promotores?cpf=eq.${encodeURIComponent(c)}&senha=eq.${encodeURIComponent(senha)}&select=*`);
+      if (rows?.[0]) return rows[0];
+    } catch(e) { console.warn('supaAuth:', c, e.message); }
+  }
+  return null;
 }
 
 // ─── ESTADO GLOBAL ───────────────────────────
