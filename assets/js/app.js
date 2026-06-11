@@ -245,26 +245,17 @@ async function renderEstoque() {
           <span class="sim-conc-nome">${s.empresa_concorrente}</span>
           <span class="sim-produto-nome">${s.produto_similar}</span>
         </div>
-        <!-- Linha 1 do concorrente: Preço + Diferença -->
-        <div class="sim-linha">
-          <div style="flex:1">
+        <div class="sim-conc-grid">
+          <div>
             <label>Preço concorrente (R$)</label>
             <input type="text" class="sim-preco-input" placeholder="0,00" inputmode="decimal"
-              data-meu-preco="${p.preco_sugerido || 0}"
-              oninput="calcDiffInline(this)">
+              data-meu-preco="${p.preco_sugerido || 0}">
           </div>
-          <div class="sim-diff-wrap">
-            <label>Diferença vs meu preço</label>
-            <div class="sim-diff-badge" id="diff-inline-${s.id}">—</div>
-          </div>
-        </div>
-        <!-- Linha 2 do concorrente: Estoque + Venda -->
-        <div class="sim-linha" style="margin-top:8px">
-          <div style="flex:1">
+          <div>
             <label>Estoque concorrente</label>
             <input type="number" class="sim-estoque-conc" placeholder="0,00" inputmode="decimal" step="0.01" min="0">
           </div>
-          <div style="flex:1">
+          <div>
             <label>Venda concorrente</label>
             <input type="number" class="sim-venda-conc" placeholder="0,00" inputmode="decimal" step="0.01" min="0">
           </div>
@@ -279,15 +270,11 @@ async function renderEstoque() {
         <div class="est-item-preco-ref">${p.preco_sugerido ? moeda(p.preco_sugerido) : ''}</div>
       </div>
 
-      <!-- Grid 2x2: Estoque sistema | Contagem física / Qtd vendida | Preço atual -->
+      <!-- Grid 2x2: Estoque | Qtd vendida | Preço | Ruptura -->
       <div class="est-grid-campos">
         <div>
           <label>Estoque sistema</label>
           <input type="number" class="est-sistema" placeholder="0,00" inputmode="decimal" step="0.01" min="0" oninput="calcStatus(this)">
-        </div>
-        <div>
-          <label>Contagem física</label>
-          <input type="number" class="est-fisico" placeholder="0,00" inputmode="decimal" step="0.01" min="0" oninput="calcStatus(this)">
         </div>
         <div>
           <label>Qtd vendida</label>
@@ -297,14 +284,13 @@ async function renderEstoque() {
           <label>Preço atual (R$)</label>
           <input type="text" class="est-preco" placeholder="0,00" inputmode="decimal">
         </div>
-      </div>
-      <!-- Ruptura em linha separada -->
-      <div class="est-ruptura-row">
-        <label>Ruptura?</label>
-        <select class="est-ruptura">
-          <option value="nao">Não</option>
-          <option value="sim">Sim</option>
-        </select>
+        <div>
+          <label>Ruptura?</label>
+          <select class="est-ruptura" onchange="calcStatus(this)">
+            <option value="nao">Não</option>
+            <option value="sim">Sim</option>
+          </select>
+        </div>
       </div>
 
       <div class="est-status est-ok">✓ OK</div>
@@ -347,15 +333,20 @@ function calcDiffInline(input) {
 }
 
 function calcStatus(input) {
-  const item = input.closest('.est-item');
-  const sis = parseFloat(item.querySelector('.est-sistema').value) || 0;
-  const fis = parseFloat(item.querySelector('.est-fisico').value) || 0;
-  const div = sis > 0 ? Math.abs(sis - fis) / sis * 100 : 0;
-  const badge = item.querySelector('.est-status');
-  badge.className = div > 15 ? 'est-status est-critico' :
-                    div > 5  ? 'est-status est-alert' : 'est-status est-ok';
-  badge.textContent = div > 15 ? `⚠️ Crítico (${div.toFixed(0)}%)` :
-                      div > 5  ? `⚡ Alerta (${div.toFixed(0)}%)` : '✓ OK';
+  const item   = input.closest('.est-item');
+  const sis    = parseFloat(item.querySelector('.est-sistema')?.value) || 0;
+  const ruptura = item.querySelector('.est-ruptura')?.value === 'sim';
+  const badge  = item.querySelector('.est-status');
+  if (ruptura) {
+    badge.className = 'est-status est-critico';
+    badge.textContent = '⚠️ Ruptura!';
+  } else if (sis === 0) {
+    badge.className = 'est-status est-alert';
+    badge.textContent = '⚡ Estoque zerado';
+  } else {
+    badge.className = 'est-status est-ok';
+    badge.textContent = '✓ OK';
+  }
 }
 
 function itemEstoqueSalvo(e) {
@@ -393,25 +384,23 @@ async function salvarEstoque() {
   // Coleta estoque
   const registros = Array.from(items).map(item => {
     const pid      = item.dataset.id;
-    const sis      = parseFloat(item.querySelector('.est-sistema')?.value) || 0;
-    const fis      = parseFloat(item.querySelector('.est-fisico')?.value) || 0;
-    const vendido  = parseFloat(item.querySelector('.est-vendido')?.value) || 0;
-    const preco    = parseFloat(item.querySelector('.est-preco')?.value?.replace(',','.')) || 0;
-    const ruptura  = item.querySelector('.est-ruptura')?.value === 'sim';
-    const div      = sis > 0 ? Math.abs(sis - fis) / sis * 100 : 0;
+    const sis     = parseFloat(item.querySelector('.est-sistema')?.value) || 0;
+    const vendido = parseFloat(item.querySelector('.est-vendido')?.value) || 0;
+    const preco   = parseFloat(item.querySelector('.est-preco')?.value?.replace(',','.')) || 0;
+    const ruptura = item.querySelector('.est-ruptura')?.value === 'sim';
     return {
-      empresa_id: _user.empresa_id,
-      loja_id: _lojaId,
-      promotor_id: _user.id,
-      produto_id: pid,
-      data: hoje,
-      sistema: sis,
-      fisico: fis,
-      qtd_vendida: vendido,
-      divergencia_pct: parseFloat(div.toFixed(2)),
+      empresa_id:     _user.empresa_id,
+      loja_id:        _lojaId,
+      promotor_id:    _user.id,
+      produto_id:     pid,
+      data:           hoje,
+      sistema:        sis,
+      fisico:         0,
+      qtd_vendida:    vendido,
+      divergencia_pct: 0,
       preco,
       ruptura,
-      status: div > 15 ? 'critico' : div > 5 ? 'alerta' : 'ok'
+      status: ruptura ? 'critico' : sis === 0 ? 'alerta' : 'ok'
     };
   });
 
