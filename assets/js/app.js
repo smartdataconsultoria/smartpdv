@@ -245,7 +245,11 @@ async function renderEstoque() {
           <span class="sim-conc-nome">${s.empresa_concorrente}</span>
           <span class="sim-produto-nome">${s.produto_similar}</span>
         </div>
-        <div class="sim-conc-grid">
+        <div class="est-grid-campos">
+          <div>
+            <label>SKU concorrente</label>
+            <input type="text" class="sim-sku-conc" placeholder="Código do produto">
+          </div>
           <div>
             <label>Preço concorrente (R$)</label>
             <input type="text" class="sim-preco-input" placeholder="0,00" inputmode="decimal"
@@ -409,11 +413,12 @@ async function salvarEstoque() {
   document.querySelectorAll('#lista-est .sim-conc-row').forEach(row => {
     const simId       = row.dataset.simId;
     const precoI      = row.querySelector('.sim-preco-input');
+    const skuConc     = row.querySelector('.sim-sku-conc')?.value?.trim() || '';
     const estoqueConc = parseFloat(row.querySelector('.sim-estoque-conc')?.value) || 0;
     const vendaConc   = parseFloat(row.querySelector('.sim-venda-conc')?.value) || 0;
     const val         = parseFloat(precoI?.value?.replace(',','.')) || 0;
     // salva se tiver pelo menos um campo preenchido
-    if (!val && !estoqueConc && !vendaConc) return;
+    if (!val && !estoqueConc && !vendaConc && !skuConc) return;
     if (!simId) return;
     const estItem = row.closest('.est-item');
     const pid  = estItem?.dataset.id;
@@ -424,6 +429,7 @@ async function salvarEstoque() {
       promotor_id:         _user.id,
       produto_id:          pid,
       similar_id:          simId,
+      sku_concorrente:     skuConc,
       preco_concorrente:   val,
       preco_proprio:       prod?.preco_sugerido || 0,
       estoque_concorrente: estoqueConc,
