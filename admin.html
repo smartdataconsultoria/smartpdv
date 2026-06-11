@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SmartPDV · Painel Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 /* ── Tokens ── */
 :root {
@@ -512,7 +514,35 @@ tr:hover td { background: var(--surface2); }
       <div id="pg-produtos" style="display:none">
         <div class="page-header">
           <div><div class="page-title">Produtos</div><div class="page-sub">Catálogo por empresa</div></div>
-          <button class="btn btn-primary" onclick="toggleForm('form-produto')">+ Novo produto</button>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost" onclick="baixarTemplate()">⬇ Baixar modelo Excel</button>
+            <button class="btn btn-ghost" onclick="document.getElementById('input-xlsx').click()">⬆ Importar Excel</button>
+            <button class="btn btn-ghost" onclick="exportarProdutosXlsx()">📊 Exportar Excel</button>
+            <button class="btn btn-primary" onclick="toggleForm('form-produto')">+ Novo produto</button>
+            <input type="file" id="input-xlsx" accept=".xlsx,.xls" style="display:none" onchange="importarProdutosXlsx(this)">
+          </div>
+        </div>
+
+        <!-- Preview de importação -->
+        <div class="card" id="card-preview-import" style="display:none">
+          <div class="card-head" style="background:var(--amber-bg);border-bottom-color:#fcd34d">
+            <div>
+              <div class="card-title" style="color:var(--amber)">⚠️ Revisar antes de importar</div>
+              <div style="font-size:12px;color:var(--text3);margin-top:2px" id="preview-resumo"></div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary" onclick="confirmarImportacao()" id="btn-confirmar-import">✓ Confirmar importação</button>
+              <button class="btn btn-ghost" onclick="cancelarImportacao()">Cancelar</button>
+            </div>
+          </div>
+          <div class="card-body" style="padding:0">
+            <div class="table-wrap">
+              <table id="preview-table">
+                <thead><tr><th>Status</th><th>Nome</th><th>SKU</th><th>Fornecedor</th><th>Preço (R$)</th><th>Est. mínimo</th><th>Empresa</th></tr></thead>
+                <tbody id="preview-tbody"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         <div class="card" id="form-produto" style="display:none">
@@ -914,6 +944,161 @@ async function criarProduto() {
     limparForm(['prod-nome','prod-sku','prod-fornecedor','prod-preco','prod-minimo']);
     toast(`Produto "${nome}" criado! ✓`, 'green');
   } catch(e) { toast('Erro: ' + e.message, 'red'); }
+}
+
+// ── Import / Export Excel ─────────────────────
+
+function baixarTemplate() {
+  const ws = XLSX.utils.aoa_to_sheet([
+    ['empresa_nome','nome','sku','fornecedor','preco_sugerido','estoque_minimo'],
+    ['Empresa Demo','Produto A — 500ml','SKU-001','Distribuidora ABC','12,90','20'],
+    ['Empresa Demo','Produto B — 1L','SKU-002','Distribuidora XYZ','24,50','10'],
+  ]);
+  ws['!cols'] = [{wch:20},{wch:30},{wch:12},{wch:22},{wch:16},{wch:14}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Produtos');
+  XLSX.writeFile(wb, 'smartpdv_modelo_produtos.xlsx');
+  toast('Modelo baixado! Preencha e importe.', 'green');
+}
+
+function exportarProdutosXlsx() {
+  const filtro = document.getElementById('filtro-empresa-prod')?.value;
+  const lista  = filtro ? _produtos.filter(p => p.empresa_id === filtro) : _produtos;
+  if (!lista.length) { toast('Nenhum produto para exportar', 'red'); return; }
+  const rows = [['empresa_nome','nome','sku','fornecedor','preco_sugerido','estoque_minimo']];
+  lista.forEach(p => {
+    const emp = _empresas.find(e => e.id === p.empresa_id);
+    rows.push([emp?.nome || '', p.nome, p.sku || '', p.fornecedor || '',
+      p.preco_sugerido ? Number(p.preco_sugerido).toFixed(2).replace('.',',') : '0,00',
+      p.estoque_minimo || 0]);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:20},{wch:30},{wch:12},{wch:22},{wch:16},{wch:14}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Produtos');
+  XLSX.writeFile(wb, 'smartpdv_produtos.xlsx');
+  toast(`${lista.length} produtos exportados!`, 'green');
+}
+
+let _importBuffer = []; // linhas aguardando confirmação
+
+function importarProdutosXlsx(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb   = XLSX.read(e.target.result, { type:'binary', cellDates:true, raw:false });
+      const ws   = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval:'' });
+      if (!rows.length) { toast('Planilha vazia ou formato inválido', 'red'); return; }
+      processarLinhasImport(rows);
+    } catch(err) { toast('Erro ao ler arquivo: ' + err.message, 'red'); }
+    input.value = ''; // reset input
+  };
+  reader.readAsBinaryString(file);
+}
+
+function processarLinhasImport(rows) {
+  _importBuffer = [];
+  const tbody = document.getElementById('preview-tbody');
+  const linhas = [];
+
+  rows.forEach((row, i) => {
+    // Aceita variações de nome de coluna (com/sem acento, maiúsculas)
+    const get = (...keys) => {
+      for (const k of keys) {
+        const found = Object.keys(row).find(rk => rk.trim().toLowerCase() === k.toLowerCase());
+        if (found && row[found] !== '') return String(row[found]).trim();
+      }
+      return '';
+    };
+
+    const empNome = get('empresa_nome','empresa','company');
+    const nome    = get('nome','name','produto','product');
+    const sku     = get('sku','codigo','code','cod');
+    const fornec  = get('fornecedor','supplier','distribuidor');
+    const precoRaw= get('preco_sugerido','preco','price','valor');
+    const minimoRaw = get('estoque_minimo','minimo','min','stock_min');
+
+    const preco  = parseFloat(precoRaw.replace(',','.')) || 0;
+    const minimo = parseInt(minimoRaw) || 0;
+
+    // Encontra empresa pelo nome (case-insensitive)
+    const emp = _empresas.find(e => e.nome.trim().toLowerCase() === empNome.trim().toLowerCase());
+
+    let status = 'ok', statusTxt = '✓ OK', statusCls = 'b-green';
+    if (!nome)   { status = 'erro'; statusTxt = '✕ Sem nome';    statusCls = 'b-red'; }
+    else if (!emp) { status = 'aviso'; statusTxt = '⚠ Empresa não encontrada'; statusCls = 'b-amber'; }
+
+    const linha = { empNome, nome, sku, fornec, preco, minimo, emp, status };
+    _importBuffer.push(linha);
+
+    linhas.push(`<tr>
+      <td><span class="badge ${statusCls}">${statusTxt}</span></td>
+      <td>${nome || '<span style="color:var(--red)">—</span>'}</td>
+      <td class="mono" style="font-size:12px">${sku || '—'}</td>
+      <td>${fornec || '—'}</td>
+      <td class="mono">R$ ${preco.toFixed(2).replace('.',',')}</td>
+      <td>${minimo}</td>
+      <td>${emp ? emp.nome : `<span style="color:var(--amber)">${empNome || '—'}</span>`}</td>
+    </tr>`);
+  });
+
+  tbody.innerHTML = linhas.join('');
+  const ok    = _importBuffer.filter(l => l.status === 'ok').length;
+  const aviso = _importBuffer.filter(l => l.status === 'aviso').length;
+  const erro  = _importBuffer.filter(l => l.status === 'erro').length;
+  document.getElementById('preview-resumo').textContent =
+    `${rows.length} linha(s) lidas · ${ok} ok · ${aviso} com aviso · ${erro} erro(s)`;
+  document.getElementById('btn-confirmar-import').textContent =
+    `✓ Importar ${ok + aviso} produto(s)`;
+  document.getElementById('card-preview-import').style.display = 'block';
+  document.getElementById('card-preview-import').scrollIntoView({ behavior:'smooth' });
+}
+
+async function confirmarImportacao() {
+  const validos = _importBuffer.filter(l => l.status !== 'erro' && l.nome);
+  if (!validos.length) { toast('Nenhum produto válido para importar', 'red'); return; }
+
+  const btn = document.getElementById('btn-confirmar-import');
+  btn.textContent = '⏳ Importando...';
+  btn.disabled = true;
+
+  const BATCH = 50;
+  let importados = 0, erros = 0;
+
+  for (let i = 0; i < validos.length; i += BATCH) {
+    const lote = validos.slice(i, i + BATCH).map(l => ({
+      empresa_id:    l.emp?.id || null,
+      nome:          l.nome,
+      sku:           l.sku || null,
+      fornecedor:    l.fornec || null,
+      preco_sugerido: l.preco,
+      estoque_minimo: l.minimo,
+      ativo:         true
+    })).filter(p => p.empresa_id); // só com empresa válida
+
+    try {
+      const novos = await supa('produtos', { method:'POST', body: lote, prefer:'resolution=ignore-duplicates' });
+      _produtos.push(...(novos || []));
+      importados += lote.length;
+    } catch(e) {
+      erros += lote.length;
+      console.warn('Lote falhou:', e.message);
+    }
+  }
+
+  cancelarImportacao();
+  renderProdutos();
+  toast(`${importados} produto(s) importado(s)${erros ? ` · ${erros} erro(s)` : ''}! ✓`, 'green');
+  btn.disabled = false;
+}
+
+function cancelarImportacao() {
+  _importBuffer = [];
+  document.getElementById('card-preview-import').style.display = 'none';
+  document.getElementById('preview-tbody').innerHTML = '';
 }
 
 function renderProdutos() {
