@@ -198,6 +198,9 @@ async function carregarResumoHome() {
 }
 
 // ─── ESTOQUE ─────────────────────────────────
+// similares por produto_id (carregados junto com os dados base)
+let _simsPorProduto = {};
+
 async function renderEstoque() {
   el('loja-est').textContent = nomeLojaAtual();
   if (!_lojaId || !_produtos.length) {
@@ -205,6 +208,17 @@ async function renderEstoque() {
     return;
   }
   const hoje = dataHoje();
+
+  // Carrega similares da empresa para uso inline
+  try {
+    const sims = await supa(`similares_concorrentes?empresa_id=eq.${_user.empresa_id}&select=*`);
+    _simsPorProduto = {};
+    (sims || []).forEach(s => {
+      if (!_simsPorProduto[s.produto_id]) _simsPorProduto[s.produto_id] = [];
+      _simsPorProduto[s.produto_id].push(s);
+    });
+  } catch(e) { _simsPorProduto = {}; }
+
   const existente = await supa(`estoque_lancamentos?loja_id=eq.${_lojaId}&data=eq.${hoje}&select=*`).catch(() => []);
   const jaSalvo = existente.length > 0;
 
@@ -222,17 +236,54 @@ async function renderEstoque() {
     return lojas.length === 0 || lojas.includes(_lojaId);
   });
 
-  el('lista-est').innerHTML = produtosDaLoja.map(p => `
+  el('lista-est').innerHTML = produtosDaLoja.map(p => {
+    const sims = _simsPorProduto[p.id] || [];
+    const temSimilar = sims.length > 0;
+    const simRows = sims.map(s => `
+      <div class="sim-conc-row" data-sim-id="${s.id}">
+        <div class="sim-conc-label">
+          <span class="sim-conc-nome">${s.empresa_concorrente}</span>
+          <span class="sim-produto-nome">${s.produto_similar}</span>
+        </div>
+        <div class="sim-conc-inputs">
+          <div>
+            <label>Preço concorrente (R$)</label>
+            <input type="text" class="sim-preco-input" placeholder="0,00" inputmode="decimal"
+              data-meu-preco="${p.preco_sugerido || 0}"
+              oninput="calcDiffInline(this)">
+          </div>
+          <div class="sim-diff-wrap">
+            <label>Diferença</label>
+            <div class="sim-diff-badge" id="diff-inline-${s.id}">—</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    return `
     <div class="est-item" data-id="${p.id}">
-      <div class="est-item-nome">${p.nome}</div>
+      <div class="est-item-header">
+        <div class="est-item-nome">${p.nome}${p.sku ? `<span class="est-sku">${p.sku}</span>` : ''}</div>
+        <div class="est-item-preco-ref">${p.preco_sugerido ? moeda(p.preco_sugerido) : ''}</div>
+      </div>
+
+      <!-- Linha 1: Estoque sistema + Contagem física -->
       <div class="est-inputs">
         <div>
           <label>Estoque sistema</label>
-          <input type="number" class="est-sistema" placeholder="0" inputmode="numeric" oninput="calcStatus(this)">
+          <input type="number" class="est-sistema" placeholder="0,00" inputmode="decimal" step="0.01" min="0" oninput="calcStatus(this)">
         </div>
         <div>
           <label>Contagem física</label>
-          <input type="number" class="est-fisico" placeholder="0" inputmode="numeric" oninput="calcStatus(this)">
+          <input type="number" class="est-fisico" placeholder="0,00" inputmode="decimal" step="0.01" min="0" oninput="calcStatus(this)">
+        </div>
+      </div>
+
+      <!-- Linha 2: Qtd vendida + Preço atual + Ruptura -->
+      <div class="est-inputs" style="margin-top:0">
+        <div>
+          <label>Qtd vendida</label>
+          <input type="number" class="est-vendido" placeholder="0,00" inputmode="decimal" step="0.01" min="0">
         </div>
         <div>
           <label>Preço atual (R$)</label>
@@ -246,9 +297,44 @@ async function renderEstoque() {
           </select>
         </div>
       </div>
+
       <div class="est-status est-ok">✓ OK</div>
-    </div>
-  `).join('');
+
+      <!-- Toggle similar -->
+      ${temSimilar ? `
+      <div class="sim-toggle-bar" onclick="toggleSimilar(this)">
+        <span class="sim-toggle-icon">🔄</span>
+        <span class="sim-toggle-txt">Preencher preços dos concorrentes <span class="sim-count-badge">${sims.length}</span></span>
+        <span class="sim-toggle-arrow">▾</span>
+      </div>
+      <div class="sim-conc-panel" style="display:none">
+        <div class="sim-panel-label">Pesquisa de preços — preencha o que encontrar na loja</div>
+        ${simRows}
+      </div>
+      ` : ''}
+    </div>`;
+  }).join('');
+}
+
+function toggleSimilar(bar) {
+  const panel = bar.nextElementSibling;
+  const arrow = bar.querySelector('.sim-toggle-arrow');
+  const open  = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'block';
+  arrow.style.transform = open ? '' : 'rotate(180deg)';
+  bar.classList.toggle('sim-toggle-open', !open);
+}
+
+function calcDiffInline(input) {
+  const meu  = parseFloat(input.dataset.meuPreco) || 0;
+  const conc = parseFloat(input.value.replace(',', '.')) || 0;
+  const row  = input.closest('.sim-conc-row');
+  const simId = row?.dataset.simId;
+  const badge = simId ? document.getElementById('diff-inline-' + simId) : null;
+  if (!badge || !conc) { if (badge) badge.textContent = '—'; return; }
+  const diff = conc - meu;
+  badge.textContent = (diff > 0 ? '+' : '') + moeda(diff);
+  badge.className = 'sim-diff-badge ' + (diff > 0 ? 'diff-pos' : diff < 0 ? 'diff-neg' : '');
 }
 
 function calcStatus(input) {
@@ -267,12 +353,16 @@ function itemEstoqueSalvo(e) {
   const div = e.sistema > 0 ? Math.abs(e.sistema - e.fisico) / e.sistema * 100 : 0;
   const cls = div > 15 ? 'est-critico' : div > 5 ? 'est-alert' : 'est-ok';
   const lbl = div > 15 ? `Crítico ${div.toFixed(0)}%` : div > 5 ? `Alerta ${div.toFixed(0)}%` : 'OK';
+  const prod = _produtos.find(p => p.id === e.produto_id);
   return `<div class="est-item">
-    <div class="est-item-nome">${e.nome_produto || e.produto_id}</div>
-    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:6px">
-      <span>Sistema: <strong>${e.sistema}</strong></span>
-      <span>Físico: <strong>${e.fisico}</strong></span>
-      <span>Preço: <strong>${moeda(e.preco)}</strong></span>
+    <div class="est-item-header">
+      <div class="est-item-nome">${prod?.nome || e.nome_produto || e.produto_id}${prod?.sku ? `<span class="est-sku">${prod.sku}</span>` : ''}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:12px;color:var(--text2);margin-bottom:6px">
+      <div><div style="font-size:10px;color:var(--text3)">Sistema</div><strong>${e.sistema}</strong></div>
+      <div><div style="font-size:10px;color:var(--text3)">Físico</div><strong>${e.fisico}</strong></div>
+      <div><div style="font-size:10px;color:var(--text3)">Vendido</div><strong>${e.qtd_vendida || '—'}</strong></div>
+      <div><div style="font-size:10px;color:var(--text3)">Preço</div><strong>${moeda(e.preco)}</strong></div>
     </div>
     <div class="est-status ${cls}">${lbl}</div>
   </div>`;
@@ -290,13 +380,16 @@ async function salvarEstoque() {
   if (!items.length) { toast('Nenhum produto para salvar', 'red'); return; }
 
   const hoje = dataHoje();
+
+  // Coleta estoque
   const registros = Array.from(items).map(item => {
-    const pid = item.dataset.id;
-    const sis = parseFloat(item.querySelector('.est-sistema').value) || 0;
-    const fis = parseFloat(item.querySelector('.est-fisico').value) || 0;
-    const preco = parseFloat(item.querySelector('.est-preco').value?.replace(',','.')) || 0;
-    const ruptura = item.querySelector('.est-ruptura').value === 'sim';
-    const div = sis > 0 ? Math.abs(sis - fis) / sis * 100 : 0;
+    const pid      = item.dataset.id;
+    const sis      = parseFloat(item.querySelector('.est-sistema')?.value) || 0;
+    const fis      = parseFloat(item.querySelector('.est-fisico')?.value) || 0;
+    const vendido  = parseFloat(item.querySelector('.est-vendido')?.value) || 0;
+    const preco    = parseFloat(item.querySelector('.est-preco')?.value?.replace(',','.')) || 0;
+    const ruptura  = item.querySelector('.est-ruptura')?.value === 'sim';
+    const div      = sis > 0 ? Math.abs(sis - fis) / sis * 100 : 0;
     return {
       empresa_id: _user.empresa_id,
       loja_id: _lojaId,
@@ -305,6 +398,7 @@ async function salvarEstoque() {
       data: hoje,
       sistema: sis,
       fisico: fis,
+      qtd_vendida: vendido,
       divergencia_pct: parseFloat(div.toFixed(2)),
       preco,
       ruptura,
@@ -312,14 +406,43 @@ async function salvarEstoque() {
     };
   });
 
+  // Coleta preços de concorrentes preenchidos inline
+  const precosConc = [];
+  document.querySelectorAll('#lista-est .sim-conc-row').forEach(row => {
+    const simId  = row.dataset.simId;
+    const precoI = row.querySelector('.sim-preco-input');
+    const val    = parseFloat(precoI?.value?.replace(',','.')) || 0;
+    if (!val || !simId) return;
+    const sim  = Object.values(_simsPorProduto).flat().find(s => s.id === simId);
+    if (!sim) return;
+    // descobre produto_id via item pai
+    const estItem = row.closest('.est-item');
+    const pid = estItem?.dataset.id;
+    const prod = _produtos.find(p => p.id === pid);
+    precosConc.push({
+      empresa_id: _user.empresa_id,
+      loja_id: _lojaId,
+      promotor_id: _user.id,
+      produto_id: pid,
+      similar_id: simId,
+      preco_concorrente: val,
+      preco_proprio: prod?.preco_sugerido || 0,
+      data: hoje
+    });
+  });
+
   try {
     await supa('estoque_lancamentos', {
-      method: 'POST',
-      body: registros,
-      prefer: 'resolution=merge-duplicates'
+      method: 'POST', body: registros, prefer: 'resolution=merge-duplicates'
     });
+    if (precosConc.length) {
+      await supa('precos_concorrentes', {
+        method: 'POST', body: precosConc, prefer: 'resolution=merge-duplicates'
+      });
+    }
     await registrarPontos('estoque_salvo', 10);
-    toast('Estoque salvo com sucesso! +10pts 🎯');
+    const extra = precosConc.length ? ` + ${precosConc.length} preço(s) de concorrente` : '';
+    toast(`Salvo! +10pts 🎯${extra}`);
     renderEstoque();
   } catch(e) {
     toast('Erro ao salvar: ' + e.message, 'red');
