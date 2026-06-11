@@ -325,49 +325,54 @@ async function renderEstoque() {
 function confirmarProduto(btn, prodId, temSimilar) {
   const item = btn.closest('.est-item');
 
-  // Marca card como confirmado
-  item.classList.add('est-item-confirmado');
-  btn.style.display = 'none';
-
-  // Mostra mini-resumo dos valores preenchidos
+  // Lê valores ANTES de esconder qualquer coisa
   const sis     = item.querySelector('.est-sistema')?.value || '0';
   const vendido = item.querySelector('.est-vendido')?.value || '0';
   const preco   = item.querySelector('.est-preco')?.value || '0,00';
   const ruptura = item.querySelector('.est-ruptura')?.value === 'sim';
 
+  // Marca card como confirmado e esconde campos
+  item.classList.add('est-item-confirmado');
+  item.querySelector('.est-grid-campos').style.display = 'none';
+  btn.style.display = 'none';
+
+  // Insere resumo logo após o header
   const resumo = document.createElement('div');
   resumo.className = 'est-resumo-confirmado';
   resumo.innerHTML = `
-    <div class="est-resumo-linha">
-      <span>📦 Estoque</span><strong>${sis}</strong>
-    </div>
-    <div class="est-resumo-linha">
-      <span>🛒 Vendido</span><strong>${vendido}</strong>
-    </div>
-    <div class="est-resumo-linha">
-      <span>💰 Preço</span><strong>R$ ${preco}</strong>
-    </div>
-    ${ruptura ? '<div class="est-resumo-ruptura">⚠️ Ruptura marcada</div>' : ''}
+    <div class="est-resumo-linha"><span>📦 Estoque</span><strong>${sis}</strong></div>
+    <div class="est-resumo-linha"><span>🛒 Vendido</span><strong>${vendido}</strong></div>
+    <div class="est-resumo-linha"><span>💰 Preço</span><strong>R$ ${preco}</strong></div>
+    ${ruptura ? '<div class="est-resumo-ruptura">⚠️ Ruptura</div>' : ''}
     <button class="est-btn-editar" onclick="editarProduto(this)">✏️ Editar</button>
   `;
-
-  // Esconde os campos e insere resumo
-  item.querySelector('.est-grid-campos').style.display = 'none';
-  item.insertBefore(resumo, item.querySelector('.sim-toggle-bar') || item.querySelector('.btn-confirmar-produto'));
+  const header = item.querySelector('.est-item-header');
+  header.insertAdjacentElement('afterend', resumo);
 
   if (temSimilar) {
-    // Mostra a barra de similar e abre automaticamente com aviso
+    // Encontra a barra pelo id correto
     const simBar = item.querySelector('.sim-toggle-bar');
     if (simBar) {
       simBar.style.display = 'flex';
-      // Destaca a barra chamando atenção
       simBar.classList.add('sim-toggle-pendente');
+      const countBadge = simBar.querySelector('.sim-count-badge');
+      const count = countBadge ? countBadge.textContent : '';
       simBar.querySelector('.sim-toggle-txt').innerHTML =
-        `⚠️ Preencha os preços dos concorrentes <span class="sim-count-badge">${simBar.querySelectorAll ? '' : ''}</span>`;
-      // Abre automaticamente
-      toggleSimilar(simBar);
-      setTimeout(() => simBar.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+        `⚠️ Preencha os preços dos concorrentes <span class="sim-count-badge">${count}</span>`;
+      // Abre o painel automaticamente
+      const panel = simBar.nextElementSibling;
+      if (panel && panel.style.display === 'none') {
+        panel.style.display = 'block';
+        simBar.querySelector('.sim-toggle-arrow').style.transform = 'rotate(180deg)';
+        simBar.classList.add('sim-toggle-open');
+      }
+      setTimeout(() => simBar.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
     }
+  } else {
+    // Sem similar: scrolla para o próximo produto
+    const todos = Array.from(document.querySelectorAll('#lista-est .est-item'));
+    const prox  = todos.find(el => !el.classList.contains('est-item-confirmado'));
+    if (prox) setTimeout(() => prox.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
   }
 }
 
