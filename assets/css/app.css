@@ -668,3 +668,123 @@ input, select, textarea, button { font-family: inherit; }
   .nav, .header { display: none !important; }
   .screen { padding-bottom: 0; }
 }
+
+/* ══════════════════════════════════════════════
+   ESTOQUE — campos extras e painel de similares
+══════════════════════════════════════════════ */
+
+/* Header do item com nome + preço de referência */
+.est-item-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+.est-item-nome { font-size: 14px; font-weight: 700; color: var(--text); }
+.est-sku {
+  display: inline-block; margin-left: 7px;
+  font-size: 10px; font-weight: 600;
+  color: var(--text3); font-family: 'DM Mono', monospace;
+  background: var(--surface2); border: 1px solid var(--border);
+  padding: 1px 6px; border-radius: 4px;
+}
+.est-item-preco-ref {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px; font-weight: 600;
+  color: var(--brand); white-space: nowrap; flex-shrink: 0;
+}
+
+/* Inputs: agora 3 colunas na segunda linha */
+.est-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+@media (max-width: 400px) {
+  .est-inputs { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── Toggle bar de similares ── */
+.sim-toggle-bar {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 10px;
+  padding: 9px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background .15s;
+  user-select: none;
+}
+.sim-toggle-bar:hover { background: var(--brand-bg); border-color: var(--brand-mid); }
+.sim-toggle-bar.sim-toggle-open { background: var(--brand-bg); border-color: var(--brand-light); border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.sim-toggle-icon { font-size: 14px; }
+.sim-toggle-txt { flex: 1; font-size: 12px; font-weight: 600; color: var(--brand); }
+.sim-toggle-arrow { font-size: 11px; color: var(--text3); transition: transform .2s; }
+.sim-count-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--brand); color: #fff;
+  font-size: 10px; font-weight: 700;
+  width: 18px; height: 18px; border-radius: 50%;
+  margin-left: 4px;
+}
+
+/* ── Painel de similares ── */
+.sim-conc-panel {
+  background: var(--brand-bg);
+  border: 1px solid var(--brand-light);
+  border-top: none;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  padding: 10px 12px;
+}
+.sim-panel-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .05em; color: var(--brand); margin-bottom: 10px;
+  opacity: .7;
+}
+
+/* ── Linha de cada concorrente ── */
+.sim-conc-row {
+  background: var(--surface);
+  border: 1px solid var(--brand-light);
+  border-radius: var(--radius-xs);
+  padding: 10px; margin-bottom: 8px;
+}
+.sim-conc-row:last-child { margin-bottom: 0; }
+.sim-conc-label {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px;
+}
+.sim-conc-nome {
+  font-size: 12px; font-weight: 700; color: var(--text);
+  background: var(--brand-bg); border: 1px solid var(--brand-light);
+  padding: 2px 8px; border-radius: 20px; color: var(--brand);
+}
+.sim-produto-nome { font-size: 11px; color: var(--text3); }
+
+.sim-conc-inputs {
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 8px; align-items: end;
+}
+.sim-conc-inputs label {
+  font-size: 10px; font-weight: 600; color: var(--text3);
+  display: block; margin-bottom: 4px;
+}
+.sim-preco-input {
+  width: 100%; padding: 8px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: 14px; font-family: 'DM Mono', monospace;
+  background: var(--bg); outline: none;
+}
+.sim-preco-input:focus { border-color: var(--brand); background: #fff; }
+
+/* ── Badge de diferença inline ── */
+.sim-diff-wrap { min-width: 80px; }
+.sim-diff-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px; font-weight: 700;
+  padding: 7px 10px; border-radius: var(--radius-xs);
+  background: var(--surface2); color: var(--text3);
+  border: 1px solid var(--border); text-align: center;
+  white-space: nowrap;
+}
+.sim-diff-badge.diff-pos { background: var(--green-bg); color: var(--green); border-color: #86efac; }
+.sim-diff-badge.diff-neg { background: var(--red-bg);   color: var(--red);   border-color: #fca5a5; }
