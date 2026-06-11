@@ -835,3 +835,171 @@ input, select, textarea, button { font-family: inherit; }
 }
 .sim-diff-badge.diff-pos { background: var(--green-bg); color: var(--green); border-color: #86efac; }
 .sim-diff-badge.diff-neg { background: var(--red-bg);   color: var(--red);   border-color: #fca5a5; }
+
+/* ══════════════════════════════════════════════
+   MODAL DE SUCESSO — pós salvamento de estoque
+══════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,.45);
+  backdrop-filter: blur(2px);
+}
+.modal-box {
+  position: fixed; z-index: 1001;
+  bottom: 0; left: 50%; transform: translateX(-50%) translateY(100%);
+  width: 100%; max-width: 520px;
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px 32px;
+  box-shadow: 0 -8px 32px rgba(0,0,0,.15);
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+}
+.modal-box-show { transform: translateX(-50%) translateY(0); }
+
+.modal-icon { font-size: 2.2rem; text-align: center; margin-bottom: 8px; }
+.modal-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.2rem; font-weight: 700;
+  text-align: center; margin-bottom: 16px;
+}
+
+/* Resumo de itens salvos */
+.modal-resumo {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.modal-res-item {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; color: var(--text2);
+}
+.modal-res-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
+
+/* Alerta de similares pendentes */
+.modal-alerta {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: var(--amber-bg);
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.modal-alerta-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+.modal-alerta-title {
+  font-size: 13px; font-weight: 700;
+  color: var(--amber); margin-bottom: 4px;
+}
+.modal-alerta-txt { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+/* Completo sem pendências */
+.modal-completo {
+  background: var(--green-bg);
+  border: 1px solid #86efac;
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13px; font-weight: 600;
+  color: var(--green);
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+/* Botões */
+.modal-btn-sim {
+  width: 100%; padding: 13px;
+  background: var(--amber); color: #000;
+  border: none; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 700;
+  cursor: pointer; margin-bottom: 8px;
+  transition: background .15s;
+}
+.modal-btn-sim:active { background: #b45309; color: #fff; }
+.modal-btn-ok {
+  width: 100%; padding: 12px;
+  background: var(--surface2); color: var(--text2);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+}
+.modal-btn-ok:active { background: var(--border); }
+
+/* ══════════════════════════════════════════════
+   CONFIRMAÇÃO POR PRODUTO
+══════════════════════════════════════════════ */
+
+/* Botão confirmar produto */
+.btn-confirmar-produto {
+  width: 100%; padding: 11px;
+  background: var(--brand); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 600;
+  cursor: pointer; margin-top: 8px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: background .15s;
+}
+.btn-confirmar-produto:active { background: var(--brand-dark); }
+
+/* Card confirmado */
+.est-item-confirmado {
+  border-color: var(--brand-light);
+  background: var(--brand-bg);
+}
+.est-item-confirmado .est-item-nome { color: var(--brand); }
+
+/* Resumo após confirmação */
+.est-resumo-confirmado {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  align-items: center; margin-bottom: 8px;
+}
+.est-resumo-linha {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--surface); border: 1px solid var(--brand-light);
+  border-radius: 20px; padding: 4px 10px;
+  font-size: 12px; color: var(--text2);
+}
+.est-resumo-linha strong { color: var(--brand); margin-left: 2px; }
+.est-resumo-ruptura {
+  background: var(--red-bg); color: var(--red);
+  border: 1px solid #fca5a5; border-radius: 20px;
+  padding: 4px 10px; font-size: 12px; font-weight: 600;
+}
+.est-btn-editar {
+  background: none; border: 1px solid var(--border2);
+  border-radius: 20px; padding: 4px 10px;
+  font-size: 11px; color: var(--text3); cursor: pointer;
+  margin-left: auto;
+}
+.est-btn-editar:active { background: var(--surface2); }
+
+/* Barra similar pendente (após confirmar produto) */
+.sim-toggle-pendente {
+  background: var(--amber-bg) !important;
+  border-color: #fcd34d !important;
+  animation: pulseAmber 1.5s ease-in-out 3;
+}
+.sim-toggle-pendente .sim-toggle-txt { color: var(--amber) !important; }
+@keyframes pulseAmber {
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: 0 0 0 3px rgba(217,119,6,.25); }
+}
+
+/* Barra similar confirmada */
+.sim-toggle-confirmado {
+  background: var(--green-bg) !important;
+  border-color: #86efac !important;
+}
+.sim-toggle-confirmado .sim-toggle-txt { color: var(--green) !important; }
+
+/* Botão confirmar similares */
+.btn-confirmar-similar {
+  width: 100%; padding: 10px;
+  background: var(--green); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; margin-top: 10px;
+  transition: background .15s;
+}
+.btn-confirmar-similar:active { background: #15803d; }
