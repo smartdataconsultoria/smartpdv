@@ -575,85 +575,76 @@ input, select, textarea, button { font-family: inherit; }
    RESPONSIVIDADE
    Mobile  : < 640px  → app ocupa 100% da tela
    Tablet  : 640–1024px → centralizado, max 600px
-   Desktop : > 1024px → layout com sidebar visual
+   Desktop : > 1024px → app centralizado, 520px
 ══════════════════════════════════════════════ */
 
-/* ── Desktop: centraliza o app como um "painel" ── */
-@media (min-width: 1024px) {
-  body { background: #E8EDF2; }
-
-  /* Wrapper central para todas as telas */
-  .screen {
-    max-width: 520px;
-    margin: 0 auto;
+/* ── Base: body como fundo, tela como coluna centralizada ── */
+@media (min-width: 640px) {
+  body {
+    background: #E4E9F0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
     min-height: 100vh;
-    box-shadow: 0 0 0 1px var(--border), 0 8px 40px rgba(0,0,0,.10);
+  }
+
+  /* Login centralizado */
+  .login-wrap {
+    width: 100vw;
+    min-height: 100vh;
+    background: linear-gradient(160deg, var(--brand-bg) 0%, #fff 60%);
+  }
+
+  /* Cada screen vira uma coluna centralizada */
+  .screen {
+    width: 100%;
+    max-width: 520px;
+    min-height: 100vh;
     background: var(--bg);
-    border-radius: 0;
+    box-shadow: 0 0 0 1px var(--border), 0 8px 48px rgba(0,0,0,.12);
+    flex-direction: column;
     position: relative;
   }
 
-  /* Header fica dentro do wrapper */
+  /* Header: sticky dentro do .screen — não precisa de transform */
   .header {
-    max-width: 520px;
-    margin: 0 auto;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 520px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    left: auto;
+    transform: none;
   }
 
-  /* Nav inferior centralizada */
+  /* Nav: fixed mas alinhada ao .screen via margem automática */
   .nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
     max-width: 520px;
     left: 50%;
     transform: translateX(-50%);
-    border-radius: 0 0 16px 16px;
     border-left: 1px solid var(--border);
     border-right: 1px solid var(--border);
+    border-radius: 0;
   }
 
-  /* Login centralizado com card mais largo */
-  .login-wrap { background: #E8EDF2; }
-  .login-card { max-width: 420px; }
-
-  /* Screen body respira mais no desktop */
-  .screen-body { padding: 16px 20px; gap: 12px; }
-
-  /* Cards com sombra um pouco mais pronunciada */
+  .screen-body { padding: 14px 18px; gap: 12px; }
   .card { box-shadow: 0 2px 8px rgba(0,0,0,.06); }
-
-  /* Métricas m4 fica 2x2 no desktop se preferir */
-  .metrics.m4 { grid-template-columns: repeat(4, 1fr); }
 }
 
-/* ── Tablet: centralizado sem sidebar ── */
+/* ── Desktop: um pouco mais de respiro ── */
+@media (min-width: 1024px) {
+  .screen { max-width: 520px; }
+  .nav    { max-width: 520px; }
+  .screen-body { padding: 16px 20px; gap: 12px; }
+  .login-card  { max-width: 420px; }
+}
+
+/* ── Tablet ── */
 @media (min-width: 640px) and (max-width: 1023px) {
-  body { background: #EEF1F5; }
-
-  .screen {
-    max-width: 560px;
-    margin: 0 auto;
-    box-shadow: 0 0 0 1px var(--border), 0 4px 24px rgba(0,0,0,.08);
-    background: var(--bg);
-  }
-
-  .header {
-    max-width: 560px;
-    margin: 0 auto;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 560px;
-  }
-
-  .nav {
-    max-width: 560px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-left: 1px solid var(--border);
-    border-right: 1px solid var(--border);
-  }
-
-  .screen-body { padding: 14px 18px; }
+  .screen { max-width: 500px; }
+  .nav    { max-width: 500px; }
 }
 
 /* ── Mobile: ocupa 100% sem margens ── */
@@ -661,21 +652,15 @@ input, select, textarea, button { font-family: inherit; }
   .screen { max-width: 100%; box-shadow: none; }
   .screen-body { padding: 10px 12px; gap: 8px; }
   .header { padding: 12px 14px 10px; }
-
-  /* Relógio menor no mobile */
   .h-time { font-size: 1.25rem; }
-
-  /* Cards com radius menor */
   .card { border-radius: 10px; }
-
-  /* Nav com ícones menores */
   .ni { min-width: 44px; font-size: 8px; }
   .ni-icon { font-size: 16px; }
+}
 
-  /* Métricas m4: 2 colunas no mobile pequeno */
-  @media (max-width: 359px) {
-    .metrics.m4 { grid-template-columns: repeat(2, 1fr); }
-  }
+/* ── Telas muito pequenas ── */
+@media (max-width: 359px) {
+  .metrics.m4 { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* ── Impressão / embed: sem nav ── */
