@@ -597,7 +597,35 @@ tr:hover td { background: var(--surface2); }
             <div class="page-title">Similares de concorrentes</div>
             <div class="page-sub">Vincule cada produto seu ao produto similar do concorrente — usado na pesquisa de preços do app</div>
           </div>
-          <button class="btn btn-primary" onclick="toggleForm('form-similar')">+ Novo similar</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost" onclick="baixarTemplateSimilares()">⬇ Baixar modelo Excel</button>
+            <button class="btn btn-ghost" onclick="document.getElementById('input-xlsx-sim').click()">⬆ Importar Excel</button>
+            <button class="btn btn-ghost" onclick="exportarSimilaresXlsx()">📊 Exportar Excel</button>
+            <button class="btn btn-primary" onclick="toggleForm('form-similar')">+ Novo similar</button>
+            <input type="file" id="input-xlsx-sim" accept=".xlsx,.xls" style="display:none" onchange="importarSimilaresXlsx(this)">
+          </div>
+        </div>
+
+        <!-- Preview importação similares -->
+        <div class="card" id="card-preview-sim" style="display:none">
+          <div class="card-head" style="background:var(--amber-bg);border-bottom-color:#fcd34d">
+            <div>
+              <div class="card-title" style="color:var(--amber)">⚠️ Revisar antes de importar</div>
+              <div style="font-size:12px;color:var(--text3);margin-top:2px" id="preview-sim-resumo"></div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary" onclick="confirmarImportacaoSimilares()" id="btn-confirmar-sim">✓ Confirmar importação</button>
+              <button class="btn btn-ghost" onclick="cancelarImportacaoSimilares()">Cancelar</button>
+            </div>
+          </div>
+          <div class="card-body" style="padding:0">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Status</th><th>Meu produto</th><th>Concorrente</th><th>Produto similar</th><th>Preço ref. (R$)</th><th>Empresa</th></tr></thead>
+                <tbody id="preview-sim-tbody"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         <!-- Formulário -->
@@ -1202,6 +1230,166 @@ async function deletarProduto(id, nome) {
 }
 
 // ── Similares ────────────────────────────────
+
+function baixarTemplateSimilares() {
+  const ws = XLSX.utils.aoa_to_sheet([
+    ['empresa_nome','produto_nome','produto_sku','empresa_concorrente','produto_similar','preco_referencia'],
+    ['Smartdata Consult','Assento A','SKU-001','Concorrente A','Assento Rival 500ml','45,90'],
+    ['Smartdata Consult','Assento B','SKU-002','Concorrente B','Modelo XYZ 1L','52,00'],
+  ]);
+  ws['!cols'] = [{wch:20},{wch:28},{wch:12},{wch:22},{wch:28},{wch:16}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Similares');
+  XLSX.writeFile(wb, 'smartpdv_modelo_similares.xlsx');
+  toast('Modelo baixado!', 'green');
+}
+
+function exportarSimilaresXlsx() {
+  const filtroEmp  = document.getElementById('filtro-empresa-sim')?.value;
+  const filtroProd = document.getElementById('filtro-produto-sim')?.value;
+  let lista = [..._similares];
+  if (filtroEmp)  lista = lista.filter(s => s.empresa_id === filtroEmp);
+  if (filtroProd) lista = lista.filter(s => s.produto_id === filtroProd);
+  if (!lista.length) { toast('Nenhum similar para exportar', 'red'); return; }
+
+  const rows = [['empresa_nome','produto_nome','produto_sku','empresa_concorrente','produto_similar','preco_referencia']];
+  lista.forEach(s => {
+    const emp  = _empresas.find(e => e.id === s.empresa_id);
+    const prod = _produtos.find(p => p.id === s.produto_id);
+    rows.push([
+      emp?.nome  || '',
+      prod?.nome || '',
+      prod?.sku  || '',
+      s.empresa_concorrente,
+      s.produto_similar,
+      s.preco_referencia ? Number(s.preco_referencia).toFixed(2).replace('.',',') : '0,00'
+    ]);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:20},{wch:28},{wch:12},{wch:22},{wch:28},{wch:16}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Similares');
+  XLSX.writeFile(wb, 'smartpdv_similares.xlsx');
+  toast(`${lista.length} similar(es) exportado(s)!`, 'green');
+}
+
+let _importSimBuffer = [];
+
+function importarSimilaresXlsx(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb   = XLSX.read(e.target.result, { type:'binary', cellDates:true, raw:false });
+      const ws   = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval:'' });
+      if (!rows.length) { toast('Planilha vazia ou formato inválido', 'red'); return; }
+      processarLinhasSim(rows);
+    } catch(err) { toast('Erro ao ler arquivo: ' + err.message, 'red'); }
+    input.value = '';
+  };
+  reader.readAsBinaryString(file);
+}
+
+function processarLinhasSim(rows) {
+  _importSimBuffer = [];
+  const linhas = [];
+
+  rows.forEach(row => {
+    const get = (...keys) => {
+      for (const k of keys) {
+        const found = Object.keys(row).find(rk => rk.trim().toLowerCase() === k.toLowerCase());
+        if (found && row[found] !== '') return String(row[found]).trim();
+      }
+      return '';
+    };
+
+    const empNome    = get('empresa_nome','empresa');
+    const prodNome   = get('produto_nome','produto','nome');
+    const prodSku    = get('produto_sku','sku','codigo');
+    const empConc    = get('empresa_concorrente','concorrente');
+    const nomeSim    = get('produto_similar','similar','produto_concorrente');
+    const precoRaw   = get('preco_referencia','preco','price');
+    const preco      = parseFloat(precoRaw.replace(',','.')) || 0;
+
+    // Busca empresa
+    const emp = _empresas.find(e => e.nome.trim().toLowerCase() === empNome.trim().toLowerCase());
+    // Busca produto por nome ou SKU
+    const prod = emp ? _produtos.find(p =>
+      p.empresa_id === emp.id && (
+        p.nome.trim().toLowerCase() === prodNome.trim().toLowerCase() ||
+        (prodSku && p.sku && p.sku.trim().toLowerCase() === prodSku.trim().toLowerCase())
+      )
+    ) : null;
+
+    let status = 'ok', statusTxt = '✓ OK', statusCls = 'b-green';
+    if (!empConc || !nomeSim) { status = 'erro';  statusTxt = '✕ Dados incompletos'; statusCls = 'b-red'; }
+    else if (!emp)            { status = 'aviso'; statusTxt = '⚠ Empresa não encontrada'; statusCls = 'b-amber'; }
+    else if (!prod)           { status = 'aviso'; statusTxt = '⚠ Produto não encontrado'; statusCls = 'b-amber'; }
+
+    const linha = { emp, prod, empNome, prodNome, empConc, nomeSim, preco, status };
+    _importSimBuffer.push(linha);
+
+    linhas.push(`<tr>
+      <td><span class="badge ${statusCls}">${statusTxt}</span></td>
+      <td>${prod ? `<strong>${prod.nome}</strong>` : `<span style="color:var(--amber)">${prodNome||'—'}</span>`}</td>
+      <td>${empConc || '—'}</td>
+      <td>${nomeSim || '—'}</td>
+      <td class="mono" style="font-size:12px">R$ ${preco.toFixed(2).replace('.',',')}</td>
+      <td>${emp ? emp.nome : `<span style="color:var(--amber)">${empNome||'—'}</span>`}</td>
+    </tr>`);
+  });
+
+  document.getElementById('preview-sim-tbody').innerHTML = linhas.join('');
+  const ok    = _importSimBuffer.filter(l => l.status === 'ok').length;
+  const aviso = _importSimBuffer.filter(l => l.status === 'aviso').length;
+  const erro  = _importSimBuffer.filter(l => l.status === 'erro').length;
+  document.getElementById('preview-sim-resumo').textContent =
+    `${rows.length} linha(s) lidas · ${ok} ok · ${aviso} com aviso · ${erro} erro(s)`;
+  document.getElementById('btn-confirmar-sim').textContent =
+    `✓ Importar ${ok + aviso} similar(es)`;
+  document.getElementById('card-preview-sim').style.display = 'block';
+  document.getElementById('card-preview-sim').scrollIntoView({ behavior:'smooth' });
+}
+
+async function confirmarImportacaoSimilares() {
+  const validos = _importSimBuffer.filter(l => l.status !== 'erro' && l.emp && l.prod && l.empConc && l.nomeSim);
+  if (!validos.length) { toast('Nenhum similar válido para importar', 'red'); return; }
+
+  const btn = document.getElementById('btn-confirmar-sim');
+  btn.textContent = '⏳ Importando...';
+  btn.disabled = true;
+
+  const BATCH = 50;
+  let importados = 0, erros = 0;
+
+  for (let i = 0; i < validos.length; i += BATCH) {
+    const lote = validos.slice(i, i + BATCH).map(l => ({
+      empresa_id:          l.emp.id,
+      produto_id:          l.prod.id,
+      empresa_concorrente: l.empConc,
+      produto_similar:     l.nomeSim,
+      preco_referencia:    l.preco
+    }));
+    try {
+      const novos = await supa('similares_concorrentes', { method:'POST', body: lote });
+      _similares.push(...(novos || []));
+      importados += lote.length;
+    } catch(e) { erros += lote.length; console.warn('Lote sim falhou:', e.message); }
+  }
+
+  cancelarImportacaoSimilares();
+  renderSimilares();
+  toast(`${importados} similar(es) importado(s)${erros ? ' · '+erros+' erro(s)' : ''}! ✓`, 'green');
+  btn.disabled = false;
+}
+
+function cancelarImportacaoSimilares() {
+  _importSimBuffer = [];
+  document.getElementById('card-preview-sim').style.display = 'none';
+  document.getElementById('preview-sim-tbody').innerHTML = '';
+}
 
 function atualizarProdutosSim() {
   const empId = document.getElementById('sim-empresa').value;
