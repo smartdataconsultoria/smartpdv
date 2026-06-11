@@ -245,12 +245,20 @@ async function renderEstoque() {
           <span class="sim-conc-nome">${s.empresa_concorrente}</span>
           <span class="sim-produto-nome">${s.produto_similar}</span>
         </div>
-        <div class="sim-conc-inputs">
+        <div class="sim-conc-grid">
           <div>
             <label>Preço concorrente (R$)</label>
             <input type="text" class="sim-preco-input" placeholder="0,00" inputmode="decimal"
               data-meu-preco="${p.preco_sugerido || 0}"
               oninput="calcDiffInline(this)">
+          </div>
+          <div>
+            <label>Estoque concorrente</label>
+            <input type="number" class="sim-estoque-conc" placeholder="0,00" inputmode="decimal" step="0.01" min="0">
+          </div>
+          <div>
+            <label>Venda concorrente</label>
+            <input type="number" class="sim-venda-conc" placeholder="0,00" inputmode="decimal" step="0.01" min="0">
           </div>
           <div class="sim-diff-wrap">
             <label>Diferença</label>
@@ -406,28 +414,31 @@ async function salvarEstoque() {
     };
   });
 
-  // Coleta preços de concorrentes preenchidos inline
+  // Coleta preços + estoque + venda dos concorrentes preenchidos inline
   const precosConc = [];
   document.querySelectorAll('#lista-est .sim-conc-row').forEach(row => {
-    const simId  = row.dataset.simId;
-    const precoI = row.querySelector('.sim-preco-input');
-    const val    = parseFloat(precoI?.value?.replace(',','.')) || 0;
-    if (!val || !simId) return;
-    const sim  = Object.values(_simsPorProduto).flat().find(s => s.id === simId);
-    if (!sim) return;
-    // descobre produto_id via item pai
+    const simId       = row.dataset.simId;
+    const precoI      = row.querySelector('.sim-preco-input');
+    const estoqueConc = parseFloat(row.querySelector('.sim-estoque-conc')?.value) || 0;
+    const vendaConc   = parseFloat(row.querySelector('.sim-venda-conc')?.value) || 0;
+    const val         = parseFloat(precoI?.value?.replace(',','.')) || 0;
+    // salva se tiver pelo menos um campo preenchido
+    if (!val && !estoqueConc && !vendaConc) return;
+    if (!simId) return;
     const estItem = row.closest('.est-item');
-    const pid = estItem?.dataset.id;
+    const pid  = estItem?.dataset.id;
     const prod = _produtos.find(p => p.id === pid);
     precosConc.push({
-      empresa_id: _user.empresa_id,
-      loja_id: _lojaId,
-      promotor_id: _user.id,
-      produto_id: pid,
-      similar_id: simId,
-      preco_concorrente: val,
-      preco_proprio: prod?.preco_sugerido || 0,
-      data: hoje
+      empresa_id:          _user.empresa_id,
+      loja_id:             _lojaId,
+      promotor_id:         _user.id,
+      produto_id:          pid,
+      similar_id:          simId,
+      preco_concorrente:   val,
+      preco_proprio:       prod?.preco_sugerido || 0,
+      estoque_concorrente: estoqueConc,
+      venda_concorrente:   vendaConc,
+      data:                hoje
     });
   });
 
