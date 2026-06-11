@@ -298,9 +298,14 @@ async function renderEstoque() {
       </div>
 
 
-      <!-- Toggle similar -->
+      <!-- Botão confirmar produto -->
+      <button class="btn-confirmar-produto" onclick="confirmarProduto(this, '${p.id}', ${temSimilar})">
+        ✓ Confirmar produto
+      </button>
+
+      <!-- Toggle similar — abre após confirmar -->
       ${temSimilar ? `
-      <div class="sim-toggle-bar" onclick="toggleSimilar(this)">
+      <div class="sim-toggle-bar" id="sim-bar-${p.id}" style="display:none" onclick="toggleSimilar(this)">
         <span class="sim-toggle-icon">🔄</span>
         <span class="sim-toggle-txt">Preencher preços dos concorrentes <span class="sim-count-badge">${sims.length}</span></span>
         <span class="sim-toggle-arrow">▾</span>
@@ -308,10 +313,107 @@ async function renderEstoque() {
       <div class="sim-conc-panel" style="display:none">
         <div class="sim-panel-label">Pesquisa de preços — preencha o que encontrar na loja</div>
         ${simRows}
+        <button class="btn-confirmar-similar" onclick="confirmarSimilar(this, '${p.id}')">
+          ✓ Confirmar concorrentes
+        </button>
       </div>
       ` : ''}
     </div>`;
   }).join('');
+}
+
+function confirmarProduto(btn, prodId, temSimilar) {
+  const item = btn.closest('.est-item');
+
+  // Marca card como confirmado
+  item.classList.add('est-item-confirmado');
+  btn.style.display = 'none';
+
+  // Mostra mini-resumo dos valores preenchidos
+  const sis     = item.querySelector('.est-sistema')?.value || '0';
+  const vendido = item.querySelector('.est-vendido')?.value || '0';
+  const preco   = item.querySelector('.est-preco')?.value || '0,00';
+  const ruptura = item.querySelector('.est-ruptura')?.value === 'sim';
+
+  const resumo = document.createElement('div');
+  resumo.className = 'est-resumo-confirmado';
+  resumo.innerHTML = `
+    <div class="est-resumo-linha">
+      <span>📦 Estoque</span><strong>${sis}</strong>
+    </div>
+    <div class="est-resumo-linha">
+      <span>🛒 Vendido</span><strong>${vendido}</strong>
+    </div>
+    <div class="est-resumo-linha">
+      <span>💰 Preço</span><strong>R$ ${preco}</strong>
+    </div>
+    ${ruptura ? '<div class="est-resumo-ruptura">⚠️ Ruptura marcada</div>' : ''}
+    <button class="est-btn-editar" onclick="editarProduto(this)">✏️ Editar</button>
+  `;
+
+  // Esconde os campos e insere resumo
+  item.querySelector('.est-grid-campos').style.display = 'none';
+  item.insertBefore(resumo, item.querySelector('.sim-toggle-bar') || item.querySelector('.btn-confirmar-produto'));
+
+  if (temSimilar) {
+    // Mostra a barra de similar e abre automaticamente com aviso
+    const simBar = item.querySelector('.sim-toggle-bar');
+    if (simBar) {
+      simBar.style.display = 'flex';
+      // Destaca a barra chamando atenção
+      simBar.classList.add('sim-toggle-pendente');
+      simBar.querySelector('.sim-toggle-txt').innerHTML =
+        `⚠️ Preencha os preços dos concorrentes <span class="sim-count-badge">${simBar.querySelectorAll ? '' : ''}</span>`;
+      // Abre automaticamente
+      toggleSimilar(simBar);
+      setTimeout(() => simBar.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+    }
+  }
+}
+
+function editarProduto(btn) {
+  const item = btn.closest('.est-item');
+  item.classList.remove('est-item-confirmado');
+  item.querySelector('.est-grid-campos').style.display = 'grid';
+  item.querySelector('.est-resumo-confirmado')?.remove();
+  const btnConf = item.querySelector('.btn-confirmar-produto');
+  if (btnConf) btnConf.style.display = 'flex';
+  const simBar = item.querySelector('.sim-toggle-bar');
+  if (simBar) simBar.style.display = 'none';
+  // Fecha painel similar se estiver aberto
+  const panel = item.querySelector('.sim-conc-panel');
+  if (panel) panel.style.display = 'none';
+}
+
+function confirmarSimilar(btn, prodId) {
+  const panel = btn.closest('.sim-conc-panel');
+  const bar   = panel.previousElementSibling;
+  const item  = btn.closest('.est-item');
+
+  // Conta campos preenchidos
+  const rows = panel.querySelectorAll('.sim-conc-row');
+  let preenchidos = 0;
+  rows.forEach(row => {
+    const preco = row.querySelector('.sim-preco-input')?.value;
+    if (preco) preenchidos++;
+  });
+
+  // Atualiza barra para confirmado
+  bar.classList.remove('sim-toggle-pendente');
+  bar.classList.add('sim-toggle-confirmado');
+  bar.querySelector('.sim-toggle-txt').innerHTML =
+    `✅ Concorrentes preenchidos <span class="sim-count-badge" style="background:var(--green)">${preenchidos}</span>`;
+
+  // Fecha painel
+  panel.style.display = 'none';
+  bar.querySelector('.sim-toggle-arrow').style.transform = '';
+
+  // Scrolla para o próximo produto não confirmado
+  const proxItem = Array.from(document.querySelectorAll('#lista-est .est-item'))
+    .find(el => !el.classList.contains('est-item-confirmado'));
+  if (proxItem) {
+    setTimeout(() => proxItem.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
+  }
 }
 
 function toggleSimilar(bar) {
@@ -338,21 +440,19 @@ function calcDiffInline(input) {
 // calcStatus removido — badge de status retirado da interface
 
 function itemEstoqueSalvo(e) {
-  const div = e.sistema > 0 ? Math.abs(e.sistema - e.fisico) / e.sistema * 100 : 0;
-  const cls = div > 15 ? 'est-critico' : div > 5 ? 'est-alert' : 'est-ok';
-  const lbl = div > 15 ? `Crítico ${div.toFixed(0)}%` : div > 5 ? `Alerta ${div.toFixed(0)}%` : 'OK';
   const prod = _produtos.find(p => p.id === e.produto_id);
+  const ruptura = e.ruptura ? '<span class="est-sku" style="color:var(--red);border-color:#fca5a5;background:var(--red-bg)">Ruptura</span>' : '';
   return `<div class="est-item">
     <div class="est-item-header">
-      <div class="est-item-nome">${prod?.nome || e.nome_produto || e.produto_id}${prod?.sku ? `<span class="est-sku">${prod.sku}</span>` : ''}</div>
+      <div class="est-item-nome">${prod?.nome || e.nome_produto || e.produto_id}${prod?.sku ? `<span class="est-sku">${prod.sku}</span>` : ''}${ruptura}</div>
+      <div class="est-item-preco-ref">${moeda(e.preco)}</div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:12px;color:var(--text2);margin-bottom:6px">
-      <div><div style="font-size:10px;color:var(--text3)">Sistema</div><strong>${e.sistema}</strong></div>
-      <div><div style="font-size:10px;color:var(--text3)">Físico</div><strong>${e.fisico}</strong></div>
-      <div><div style="font-size:10px;color:var(--text3)">Vendido</div><strong>${e.qtd_vendida || '—'}</strong></div>
-      <div><div style="font-size:10px;color:var(--text3)">Preço</div><strong>${moeda(e.preco)}</strong></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;color:var(--text2)">
+      <div class="est-grid-campos" style="margin:0">
+        <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Estoque sistema</div><strong>${e.sistema ?? '—'}</strong></div>
+        <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Qtd vendida</div><strong>${e.qtd_vendida ?? '—'}</strong></div>
+      </div>
     </div>
-    <div class="est-status ${cls}">${lbl}</div>
   </div>`;
 }
 
@@ -432,11 +532,100 @@ async function salvarEstoque() {
       });
     }
     await registrarPontos('estoque_salvo', 10);
-    const extra = precosConc.length ? ` + ${precosConc.length} preço(s) de concorrente` : '';
-    toast(`Salvo! +10pts 🎯${extra}`);
+
+    // Verifica se há similares pendentes (painel fechado = não preenchido)
+    const totalSims = document.querySelectorAll('#lista-est .sim-toggle-bar').length;
+    const simNaoPreenchidos = Array.from(document.querySelectorAll('#lista-est .sim-conc-row')).filter(row => {
+      const preco = row.querySelector('.sim-preco-input')?.value;
+      const est   = row.querySelector('.sim-estoque-conc')?.value;
+      const venda = row.querySelector('.sim-venda-conc')?.value;
+      return !preco && !est && !venda;
+    }).length;
+
+    mostrarModalSucesso(registros.length, precosConc.length, totalSims, simNaoPreenchidos);
     renderEstoque();
   } catch(e) {
     toast('Erro ao salvar: ' + e.message, 'red');
+  }
+}
+
+function mostrarModalSucesso(totalProd, totalConc, totalSims, simsPendentes) {
+  // Remove modal anterior se houver
+  document.getElementById('modal-sucesso')?.remove();
+
+  const temSimPendente = simsPendentes > 0;
+  const modal = document.createElement('div');
+  modal.id = 'modal-sucesso';
+  modal.innerHTML = `
+    <div class="modal-overlay" onclick="fecharModal()"></div>
+    <div class="modal-box">
+      <div class="modal-icon">🎯</div>
+      <div class="modal-title">Estoque salvo!</div>
+      <div class="modal-resumo">
+        <div class="modal-res-item">
+          <span class="modal-res-icon">📦</span>
+          <span><strong>${totalProd}</strong> produto${totalProd !== 1 ? 's' : ''} registrado${totalProd !== 1 ? 's' : ''}</span>
+        </div>
+        ${totalConc > 0 ? `
+        <div class="modal-res-item">
+          <span class="modal-res-icon">🏁</span>
+          <span><strong>${totalConc}</strong> preço${totalConc !== 1 ? 's' : ''} de concorrente salvo${totalConc !== 1 ? 's' : ''}</span>
+        </div>` : ''}
+        <div class="modal-res-item">
+          <span class="modal-res-icon">⭐</span>
+          <span><strong>+10 pontos</strong> adicionados ao seu ranking</span>
+        </div>
+      </div>
+
+      ${temSimPendente ? `
+      <div class="modal-alerta">
+        <div class="modal-alerta-icon">⚠️</div>
+        <div>
+          <div class="modal-alerta-title">Similares não preenchidos!</div>
+          <div class="modal-alerta-txt">
+            ${simsPendentes} produto${simsPendentes !== 1 ? 's' : ''} com concorrente cadastrado ainda não ${simsPendentes !== 1 ? 'foram preenchidos' : 'foi preenchido'}.
+            Toque em <strong>"Preencher preços dos concorrentes"</strong> em cada produto e informe o preço, estoque e venda do similar encontrado na loja.
+          </div>
+        </div>
+      </div>
+      <button class="modal-btn-sim" onclick="fecharModal();scrollParaSimilar()">
+        Ir preencher similares →
+      </button>
+      ` : `
+      <div class="modal-completo">
+        ✅ Todos os similares foram preenchidos!
+      </div>
+      `}
+
+      <button class="modal-btn-ok" onclick="fecharModal()">
+        ${temSimPendente ? 'Preencher depois' : 'OK, continuar'}
+      </button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  // Anima entrada
+  setTimeout(() => modal.querySelector('.modal-box').classList.add('modal-box-show'), 10);
+}
+
+function fecharModal() {
+  const m = document.getElementById('modal-sucesso');
+  if (!m) return;
+  m.querySelector('.modal-box').classList.remove('modal-box-show');
+  setTimeout(() => m.remove(), 200);
+}
+
+function scrollParaSimilar() {
+  // Abre o primeiro painel de similar pendente e scrolla até ele
+  const barras = document.querySelectorAll('#lista-est .sim-toggle-bar');
+  for (const barra of barras) {
+    const panel = barra.nextElementSibling;
+    const temVazio = Array.from(panel?.querySelectorAll('.sim-preco-input') || [])
+      .some(i => !i.value);
+    if (temVazio) {
+      if (panel.style.display === 'none') toggleSimilar(barra);
+      barra.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      break;
+    }
   }
 }
 
