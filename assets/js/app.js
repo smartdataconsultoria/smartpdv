@@ -122,7 +122,7 @@ function fazerLogout() {
 }
 
 // ─── NAVEGAÇÃO ───────────────────────────────
-const SCREENS = ['home','estoque','checklist','concorrentes','avarias','desempenho','metas','oportunidades','pontuacao','config'];
+const SCREENS = ['home','estoque','checklist','avarias','desempenho','metas','oportunidades','pontuacao','config'];
 
 function navTo(nome) {
   SCREENS.forEach(s => {
