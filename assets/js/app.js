@@ -305,7 +305,7 @@ async function renderEstoque() {
 
       <!-- Toggle similar — abre após confirmar -->
       ${temSimilar ? `
-      <div class="sim-toggle-bar" id="sim-bar-${p.id}" style="display:none" onclick="toggleSimilar(this)">
+      <div class="sim-toggle-bar sim-toggle-pendente" id="sim-bar-${p.id}" onclick="toggleSimilar(this)">
         <span class="sim-toggle-icon">🔄</span>
         <span class="sim-toggle-txt">Preencher preços dos concorrentes <span class="sim-count-badge">${sims.length}</span></span>
         <span class="sim-toggle-arrow">▾</span>
@@ -350,18 +350,16 @@ function confirmarProduto(btn, prodId, temSimilar) {
   header.insertAdjacentElement('afterend', resumo);
 
   if (temSimilar) {
-    // Encontra a barra pelo id correto
     const simBar = item.querySelector('.sim-toggle-bar');
     if (simBar) {
-      simBar.style.display = 'flex';
-      simBar.classList.add('sim-toggle-pendente');
+      // Atualiza texto para chamar atenção
       const countBadge = simBar.querySelector('.sim-count-badge');
       const count = countBadge ? countBadge.textContent : '';
       simBar.querySelector('.sim-toggle-txt').innerHTML =
         `⚠️ Preencha os preços dos concorrentes <span class="sim-count-badge">${count}</span>`;
-      // Abre o painel automaticamente
+      // Abre o painel se estiver fechado
       const panel = simBar.nextElementSibling;
-      if (panel && panel.style.display === 'none') {
+      if (panel && panel.classList.contains('sim-conc-panel') && panel.style.display === 'none') {
         panel.style.display = 'block';
         simBar.querySelector('.sim-toggle-arrow').style.transform = 'rotate(180deg)';
         simBar.classList.add('sim-toggle-open');
@@ -369,7 +367,7 @@ function confirmarProduto(btn, prodId, temSimilar) {
       setTimeout(() => simBar.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
     }
   } else {
-    // Sem similar: scrolla para o próximo produto
+    // Sem similar: scrolla para o próximo produto não confirmado
     const todos = Array.from(document.querySelectorAll('#lista-est .est-item'));
     const prox  = todos.find(el => !el.classList.contains('est-item-confirmado'));
     if (prox) setTimeout(() => prox.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
@@ -383,11 +381,14 @@ function editarProduto(btn) {
   item.querySelector('.est-resumo-confirmado')?.remove();
   const btnConf = item.querySelector('.btn-confirmar-produto');
   if (btnConf) btnConf.style.display = 'flex';
-  const simBar = item.querySelector('.sim-toggle-bar');
-  if (simBar) simBar.style.display = 'none';
   // Fecha painel similar se estiver aberto
-  const panel = item.querySelector('.sim-conc-panel');
+  const simBar = item.querySelector('.sim-toggle-bar');
+  const panel  = item.querySelector('.sim-conc-panel');
   if (panel) panel.style.display = 'none';
+  if (simBar) {
+    simBar.querySelector('.sim-toggle-arrow').style.transform = '';
+    simBar.classList.remove('sim-toggle-open');
+  }
 }
 
 function confirmarSimilar(btn, prodId) {
