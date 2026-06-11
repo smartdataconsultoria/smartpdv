@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartPDV · Painel Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Tokens ── */
+:root {
+  --brand:      #1F6B75;
+  --brand-dark: #155860;
+  --brand-bg:   #E6F4F6;
+  --brand-mid:  #cce8ec;
+  --bg:         #F0F3F7;
+  --surface:    #FFFFFF;
+  --surface2:   #F5F7FA;
+  --border:     #E2E6ED;
+  --border2:    #C8CDD6;
+  --text:       #1A1D23;
+  --text2:      #4B5563;
+  --text3:      #9CA3AF;
+  --green:      #16A34A;
+  --green-bg:   #DCFCE7;
+  --red:        #DC2626;
+  --red-bg:     #FEE2E2;
+  --amber:      #D97706;
+  --amber-bg:   #FEF3C7;
+  --shadow:     0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:  0 4px 16px rgba(0,0,0,.09);
+  --r:          12px;
+  --r-sm:       8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+input,select,textarea,button{font-family:inherit}
+
+/* ── Layout ── */
+.shell { display:flex; min-height:100vh; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 240px; flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh;
+  overflow-y: auto;
+}
+.sb-logo {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.sb-logo-text {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.2rem; font-weight: 800;
+}
+.sb-logo-text span { color: var(--brand); }
+.sb-badge {
+  display: inline-block; margin-top: 4px;
+  background: var(--brand-bg); color: var(--brand);
+  font-size: 10px; font-weight: 600;
+  padding: 2px 8px; border-radius: 20px;
+  border: 1px solid var(--brand-mid);
+}
+.sb-nav { padding: 12px 10px; flex: 1; }
+.sb-section { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; padding: 8px 10px 4px; }
+.sb-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: var(--r-sm);
+  font-size: 13px; font-weight: 500; color: var(--text2);
+  cursor: pointer; transition: all .15s; margin-bottom: 2px;
+  border: none; background: none; width: 100%; text-align: left;
+}
+.sb-item:hover { background: var(--surface2); color: var(--text); }
+.sb-item.active { background: var(--brand-bg); color: var(--brand); font-weight: 600; }
+.sb-item .sb-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+.sb-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12px; color: var(--text3);
+}
+.sb-footer strong { color: var(--brand); }
+
+/* ── Main ── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+}
+.topbar-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.admin-badge {
+  background: var(--brand-bg); color: var(--brand);
+  font-size: 11px; font-weight: 600;
+  padding: 3px 10px; border-radius: 20px;
+  border: 1px solid var(--brand-mid);
+}
+.content { padding: 24px 28px; flex: 1; overflow-y: auto; }
+
+/* ── Toast ── */
+#toast {
+  position: fixed; top: 20px; right: 20px; z-index: 9999;
+  background: var(--text); color: #fff;
+  padding: 10px 18px; border-radius: 20px;
+  font-size: 13px; font-weight: 500;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s;
+  box-shadow: var(--shadow-md);
+}
+#toast.show { opacity: 1; }
+#toast.green { background: var(--green); }
+#toast.red   { background: var(--red); }
+
+/* ── Page header ── */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.page-title { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 700; }
+.page-sub { font-size: 13px; color: var(--text3); margin-top: 2px; }
+
+/* ── Stats row ── */
+.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 16px;
+  box-shadow: var(--shadow);
+}
+.stat-n { font-family: 'DM Mono', monospace; font-size: 1.8rem; font-weight: 600; color: var(--brand); line-height: 1; }
+.stat-l { font-size: 12px; color: var(--text3); margin-top: 4px; }
+
+/* ── Card ── */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); box-shadow: var(--shadow);
+  margin-bottom: 16px; overflow: hidden;
+}
+.card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.card-title { font-size: 14px; font-weight: 600; }
+.card-body { padding: 18px; }
+
+/* ── Form ── */
+.form-grid { display: grid; gap: 14px; }
+.form-grid.g2 { grid-template-columns: 1fr 1fr; }
+.form-grid.g3 { grid-template-columns: 1fr 1fr 1fr; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 12px; font-weight: 600; color: var(--text2); }
+.field input, .field select, .field textarea {
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  font-size: 14px; color: var(--text);
+  background: var(--surface2); outline: none;
+  transition: border-color .15s;
+}
+.field input:focus, .field select:focus { border-color: var(--brand); background: #fff; }
+.field-hint { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px 16px; border-radius: var(--r-sm);
+  font-size: 13px; font-weight: 600; border: none;
+  cursor: pointer; transition: all .15s;
+}
+.btn:active { transform: scale(.98); }
+.btn-primary { background: var(--brand); color: #fff; }
+.btn-primary:hover { background: var(--brand-dark); }
+.btn-ghost { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--border); }
+.btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid #fca5a5; }
+.btn-sm { padding: 5px 11px; font-size: 12px; }
+.btn-full { width: 100%; }
+
+/* ── Table ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead tr { background: var(--surface2); }
+th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+.mono { font-family: 'DM Mono', monospace; }
+
+/* ── Badges ── */
+.badge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
+.b-green  { background: var(--green-bg);  color: var(--green); }
+.b-brand  { background: var(--brand-bg);  color: var(--brand); }
+.b-amber  { background: var(--amber-bg);  color: var(--amber); }
+.b-red    { background: var(--red-bg);    color: var(--red); }
+.b-gray   { background: var(--surface2);  color: var(--text3); border: 1px solid var(--border); }
+
+/* ── Empty state ── */
+.empty { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 13px; }
+.empty-icon { font-size: 2rem; margin-bottom: 8px; }
+
+/* ── Tabs ── */
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; background: var(--surface2); padding: 4px; border-radius: var(--r-sm); border: 1px solid var(--border); width: fit-content; }
+.tab { padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--text3); cursor: pointer; border: none; background: none; transition: all .15s; }
+.tab.active { background: var(--surface); color: var(--brand); font-weight: 600; box-shadow: var(--shadow); }
+
+/* ── Login admin ── */
+#admin-login {
+  min-height: 100vh; display: flex;
+  align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--brand-bg) 0%, #fff 60%);
+}
+.login-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 36px 32px;
+  width: 100%; max-width: 380px;
+  box-shadow: var(--shadow-md);
+}
+.login-logo { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; margin-bottom: 4px; }
+.login-logo span { color: var(--brand); }
+.login-sub { font-size: 13px; color: var(--text3); margin-bottom: 24px; }
+.login-field { margin-bottom: 14px; }
+.login-field label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 5px; }
+.login-field input { width: 100%; padding: 11px 12px; border: 1.5px solid var(--border); border-radius: var(--r-sm); font-size: 15px; background: var(--surface2); outline: none; transition: border-color .15s; }
+.login-field input:focus { border-color: var(--brand); background: #fff; }
+.login-btn { width: 100%; padding: 13px; background: var(--brand); color: #fff; border: none; border-radius: var(--r-sm); font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px; }
+.login-btn:hover { background: var(--brand-dark); }
+.login-err { display: none; color: var(--red); font-size: 13px; text-align: center; margin-top: 8px; }
+
+/* ── Divider ── */
+.divider { height: 1px; background: var(--border); margin: 18px 0; }
+
+/* ── Password copy row ── */
+.pwd-row { display: flex; align-items: center; gap: 6px; }
+.pwd-copy { cursor: pointer; font-size: 14px; opacity: .5; transition: opacity .15s; }
+.pwd-copy:hover { opacity: 1; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .content { padding: 16px; }
+  .topbar { padding: 12px 16px; }
+  .form-grid.g2, .form-grid.g3 { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════ LOGIN ADMIN ══════════════════════ -->
+<div id="admin-login">
+  <div class="login-box">
+    <div class="login-logo"><span>Smart</span>PDV</div>
+    <div style="margin-bottom:20px">
+      <span class="sb-badge">Painel Administrativo</span>
+    </div>
+    <div class="login-sub">Acesso restrito à Smartdata Consultoria</div>
+    <div class="login-field">
+      <label>Usuário admin</label>
+      <input type="text" id="adm-user" placeholder="admin" autocomplete="off">
+    </div>
+    <div class="login-field">
+      <label>Senha</label>
+      <input type="password" id="adm-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') loginAdmin()">
+    </div>
+    <button class="login-btn" onclick="loginAdmin()">Entrar no painel</button>
+    <div class="login-err" id="adm-err">Usuário ou senha incorretos.</div>
+    <div class="divider"></div>
+    <div style="font-size:11px;color:var(--text3);text-align:center">SmartPDV · Smartdata Consultoria</div>
+  </div>
+</div>
+
+<!-- ══════════════════════ SHELL ══════════════════════ -->
+<div class="shell" id="admin-shell" style="display:none">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-text"><span>Smart</span>PDV</div>
+      <div><span class="sb-badge">Admin</span></div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-section">Visão geral</div>
+      <button class="sb-item active" onclick="navAdmin('dashboard')" id="nav-dashboard">
+        <span class="sb-icon">📊</span> Dashboard
+      </button>
+      <div class="sb-section">Gestão</div>
+      <button class="sb-item" onclick="navAdmin('empresas')" id="nav-empresas">
+        <span class="sb-icon">🏢</span> Empresas
+      </button>
+      <button class="sb-item" onclick="navAdmin('promotores')" id="nav-promotores">
+        <span class="sb-icon">👤</span> Promotores
+      </button>
+      <button class="sb-item" onclick="navAdmin('lojas')" id="nav-lojas">
+        <span class="sb-icon">🏪</span> Lojas / PDVs
+      </button>
+      <button class="sb-item" onclick="navAdmin('produtos')" id="nav-produtos">
+        <span class="sb-icon">📦</span> Produtos
+      </button>
+      <div class="sb-section">Sistema</div>
+      <button class="sb-item" onclick="navAdmin('acessos')" id="nav-acessos">
+        <span class="sb-icon">🔑</span> Acessos
+      </button>
+    </nav>
+    <div class="sb-footer">
+      <div>Logado como <strong>admin</strong></div>
+      <div style="margin-top:6px">
+        <button class="btn btn-ghost btn-sm" onclick="logoutAdmin()">Sair</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-right">
+        <span class="admin-badge">Smartdata Admin</span>
+        <button class="btn btn-ghost btn-sm" onclick="recarregarTudo()">↻ Atualizar</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ── DASHBOARD ── -->
+      <div id="pg-dashboard">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Visão geral</div>
+            <div class="page-sub">Resumo de todos os clientes e promotores ativos</div>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-n" id="st-empresas">—</div><div class="stat-l">Empresas ativas</div></div>
+          <div class="stat-card"><div class="stat-n" id="st-promotores">—</div><div class="stat-l">Promotores cadastrados</div></div>
+          <div class="stat-card"><div class="stat-n" id="st-lojas">—</div><div class="stat-l">Lojas / PDVs</div></div>
+          <div class="stat-card"><div class="stat-n" id="st-produtos">—</div><div class="stat-l">Produtos cadastrados</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Empresas cadastradas</div></div>
+          <div class="card-body" style="padding:0">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Empresa</th><th>CNPJ</th><th>Promotores</th><th>Lojas</th><th>Status</th><th>Ações</th></tr></thead>
+                <tbody id="dash-empresas-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── EMPRESAS ── -->
+      <div id="pg-empresas" style="display:none">
+        <div class="page-header">
+          <div><div class="page-title">Empresas</div><div class="page-sub">Clientes da consultoria</div></div>
+          <button class="btn btn-primary" onclick="toggleForm('form-empresa')">+ Nova empresa</button>
+        </div>
+
+        <div class="card" id="form-empresa" style="display:none">
+          <div class="card-head"><div class="card-title">Nova empresa</div></div>
+          <div class="card-body">
+            <div class="form-grid g2" style="margin-bottom:14px">
+              <div class="field"><label>Nome da empresa *</label><input type="text" id="emp-nome" placeholder="Ex: Distribuidora Fred"></div>
+              <div class="field"><label>CNPJ</label><input type="text" id="emp-cnpj" placeholder="00.000.000/0001-00"></div>
+            </div>
+            <div class="form-grid g2" style="margin-bottom:16px">
+              <div class="field"><label>Contato / responsável</label><input type="text" id="emp-contato" placeholder="Nome do responsável"></div>
+              <div class="field"><label>E-mail</label><input type="text" id="emp-email" placeholder="email@empresa.com"></div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary" onclick="criarEmpresa()">Salvar empresa</button>
+              <button class="btn btn-ghost" onclick="toggleForm('form-empresa')">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Empresa</th><th>CNPJ</th><th>Contato</th><th>Status</th><th>Ações</th></tr></thead>
+                <tbody id="empresas-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PROMOTORES ── -->
+      <div id="pg-promotores" style="display:none">
+        <div class="page-header">
+          <div><div class="page-title">Promotores</div><div class="page-sub">Usuários de campo com acesso ao app</div></div>
+          <button class="btn btn-primary" onclick="toggleForm('form-promotor')">+ Novo promotor</button>
+        </div>
+
+        <div class="card" id="form-promotor" style="display:none">
+          <div class="card-head"><div class="card-title">Novo promotor</div></div>
+          <div class="card-body">
+            <div class="form-grid g3" style="margin-bottom:14px">
+              <div class="field">
+                <label>Empresa *</label>
+                <select id="prom-empresa"><option value="">Selecione a empresa</option></select>
+              </div>
+              <div class="field"><label>Nome completo *</label><input type="text" id="prom-nome" placeholder="Nome do promotor"></div>
+              <div class="field"><label>Perfil</label>
+                <select id="prom-perfil">
+                  <option value="promotor">Promotor</option>
+                  <option value="supervisor">Supervisor</option>
+                  <option value="admin">Admin da empresa</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-grid g3" style="margin-bottom:16px">
+              <div class="field">
+                <label>CPF (login) *</label>
+                <input type="text" id="prom-cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14" oninput="maskCPFInput(this)">
+                <div class="field-hint">Usado para entrar no app</div>
+              </div>
+              <div class="field">
+                <label>Senha *</label>
+                <input type="text" id="prom-senha" placeholder="senha123">
+                <div class="field-hint">Compartilhe com o promotor</div>
+              </div>
+              <div class="field">
+                <label>E-mail</label>
+                <input type="text" id="prom-email" placeholder="promotor@email.com">
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary" onclick="criarPromotor()">Salvar promotor</button>
+              <button class="btn btn-ghost" onclick="toggleForm('form-promotor')">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filtro por empresa -->
+        <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center">
+          <label style="font-size:13px;font-weight:600;color:var(--text2)">Filtrar por empresa:</label>
+          <select id="filtro-empresa-prom" onchange="renderPromotores()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--surface);outline:none">
+            <option value="">Todas</option>
+          </select>
+        </div>
+
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Nome</th><th>CPF</th><th>Senha</th><th>Perfil</th><th>Empresa</th><th>Lojas</th><th>Status</th><th>Ações</th></tr></thead>
+                <tbody id="promotores-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── LOJAS ── -->
+      <div id="pg-lojas" style="display:none">
+        <div class="page-header">
+          <div><div class="page-title">Lojas / PDVs</div><div class="page-sub">Pontos de venda por empresa</div></div>
+          <button class="btn btn-primary" onclick="toggleForm('form-loja')">+ Nova loja</button>
+        </div>
+
+        <div class="card" id="form-loja" style="display:none">
+          <div class="card-head"><div class="card-title">Nova loja</div></div>
+          <div class="card-body">
+            <div class="form-grid g2" style="margin-bottom:14px">
+              <div class="field">
+                <label>Empresa *</label>
+                <select id="loja-empresa"><option value="">Selecione</option></select>
+              </div>
+              <div class="field"><label>Nome da loja *</label><input type="text" id="loja-nome" placeholder="Ex: Atacadão Boa Viagem"></div>
+            </div>
+            <div class="form-grid g3" style="margin-bottom:14px">
+              <div class="field"><label>Rede</label><input type="text" id="loja-rede" placeholder="Atacadão"></div>
+              <div class="field"><label>Cidade</label><input type="text" id="loja-cidade" placeholder="Recife"></div>
+              <div class="field"><label>Endereço</label><input type="text" id="loja-endereco" placeholder="Av. exemplo, 123"></div>
+            </div>
+            <div style="margin-bottom:16px">
+              <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:8px">Vincular promotores a esta loja</label>
+              <div id="loja-promotores-check" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px">
+                <div style="font-size:12px;color:var(--text3)">Selecione a empresa primeiro.</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary" onclick="criarLoja()">Salvar loja</button>
+              <button class="btn btn-ghost" onclick="toggleForm('form-loja')">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center">
+          <label style="font-size:13px;font-weight:600;color:var(--text2)">Filtrar por empresa:</label>
+          <select id="filtro-empresa-loja" onchange="renderLojas()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--surface);outline:none">
+            <option value="">Todas</option>
+          </select>
+        </div>
+
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Loja</th><th>Rede</th><th>Cidade</th><th>Empresa</th><th>Promotores</th><th>Status</th><th>Ações</th></tr></thead>
+                <tbody id="lojas-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PRODUTOS ── -->
+      <div id="pg-produtos" style="display:none">
+        <div class="page-header">
+          <div><div class="page-title">Produtos</div><div class="page-sub">Catálogo por empresa</div></div>
+          <button class="btn btn-primary" onclick="toggleForm('form-produto')">+ Novo produto</button>
+        </div>
+
+        <div class="card" id="form-produto" style="display:none">
+          <div class="card-head"><div class="card-title">Novo produto</div></div>
+          <div class="card-body">
+            <div class="form-grid g3" style="margin-bottom:14px">
+              <div class="field">
+                <label>Empresa *</label>
+                <select id="prod-empresa"><option value="">Selecione</option></select>
+              </div>
+              <div class="field"><label>Nome do produto *</label><input type="text" id="prod-nome" placeholder="Ex: Produto A — 500ml"></div>
+              <div class="field"><label>SKU / Código</label><input type="text" id="prod-sku" placeholder="SKU-001"></div>
+            </div>
+            <div class="form-grid g3" style="margin-bottom:16px">
+              <div class="field"><label>Fornecedor</label><input type="text" id="prod-fornecedor" placeholder="Distribuidora ABC"></div>
+              <div class="field"><label>Preço sugerido (R$)</label><input type="text" id="prod-preco" placeholder="0,00" inputmode="decimal"></div>
+              <div class="field"><label>Estoque mínimo</label><input type="number" id="prod-minimo" placeholder="20"></div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary" onclick="criarProduto()">Salvar produto</button>
+              <button class="btn btn-ghost" onclick="toggleForm('form-produto')">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center">
+          <label style="font-size:13px;font-weight:600;color:var(--text2)">Filtrar por empresa:</label>
+          <select id="filtro-empresa-prod" onchange="renderProdutos()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--surface);outline:none">
+            <option value="">Todas</option>
+          </select>
+        </div>
+
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Produto</th><th>SKU</th><th>Fornecedor</th><th>Preço sugerido</th><th>Est. mínimo</th><th>Empresa</th><th>Ações</th></tr></thead>
+                <tbody id="produtos-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ACESSOS ── -->
+      <div id="pg-acessos" style="display:none">
+        <div class="page-header">
+          <div><div class="page-title">Acessos</div><div class="page-sub">Credenciais de login dos promotores</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Lista de acessos ativos</div>
+            <button class="btn btn-ghost btn-sm" onclick="exportarAcessos()">⬇ Exportar CSV</button>
+          </div>
+          <div class="card-body" style="padding:0">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Nome</th><th>CPF (login)</th><th>Senha</th><th>Perfil</th><th>Empresa</th><th>Ativo</th></tr></thead>
+                <tbody id="acessos-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<div id="toast"></div>
+
+<script>
+// ── Config Supabase ──────────────────────────
+const SUPA_URL  = 'https://uoijdemarffretkobdff.supabase.co';
+const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvaWpkZW1hcmZmcmV0a29iZGZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNzU4MzksImV4cCI6MjA5Njc1MTgzOX0.pRZHX_zWXzdgqXyVDDOdZVhrhKz-H0-s9iVK3kAsRoY';
+
+// ── Credencial do admin (altere antes de publicar) ──
+const ADMIN_USER = 'smartdata';
+const ADMIN_PASS = 'admin@2026';
+
+// ── Estado ──────────────────────────────────
+let _empresas   = [];
+let _promotores = [];
+let _lojas      = [];
+let _produtos   = [];
+let _lojas_prom = []; // vínculos loja <-> promotor
+
+// ── Supabase helper ──────────────────────────
+async function supa(path, opts = {}) {
+  const r = await fetch(`${SUPA_URL}/rest/v1/${path}`, {
+    headers: {
+      'apikey': SUPA_ANON,
+      'Authorization': `Bearer ${SUPA_ANON}`,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || 'return=representation',
+      ...(opts.headers || {})
+    },
+    method: opts.method || 'GET',
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.message || `HTTP ${r.status}`); }
+  return r.status === 204 ? null : r.json();
+}
+
+// ── Login admin ──────────────────────────────
+function loginAdmin() {
+  const u = document.getElementById('adm-user').value.trim();
+  const p = document.getElementById('adm-pass').value;
+  if (u === ADMIN_USER && p === ADMIN_PASS) {
+    sessionStorage.setItem('spdv_admin', '1');
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('admin-shell').style.display = 'flex';
+    recarregarTudo();
+  } else {
+    document.getElementById('adm-err').style.display = 'block';
+  }
+}
+
+function logoutAdmin() {
+  sessionStorage.removeItem('spdv_admin');
+  document.getElementById('admin-shell').style.display = 'none';
+  document.getElementById('admin-login').style.display = 'flex';
+}
+
+// ── Navegação ────────────────────────────────
+const PAGES = ['dashboard','empresas','promotores','lojas','produtos','acessos'];
+function navAdmin(pg) {
+  PAGES.forEach(p => {
+    document.getElementById('pg-' + p).style.display = p === pg ? 'block' : 'none';
+    document.getElementById('nav-' + p)?.classList.toggle('active', p === pg);
+  });
+  const titles = { dashboard:'Dashboard', empresas:'Empresas', promotores:'Promotores', lojas:'Lojas / PDVs', produtos:'Produtos', acessos:'Acessos' };
+  document.getElementById('topbar-title').textContent = titles[pg] || pg;
+  if (pg === 'promotores') renderPromotores();
+  if (pg === 'lojas')      renderLojas();
+  if (pg === 'produtos')   renderProdutos();
+  if (pg === 'acessos')    renderAcessos();
+}
+
+// ── Carregar todos os dados ──────────────────
+async function recarregarTudo() {
+  try {
+    [_empresas, _promotores, _lojas, _produtos, _lojas_prom] = await Promise.all([
+      supa('empresas?order=nome&select=*'),
+      supa('promotores?order=nome&select=*'),
+      supa('lojas?order=nome&select=*'),
+      supa('produtos?ativo=eq.true&order=nome&select=*'),
+      supa('lojas_promotor?select=*')
+    ]);
+    atualizarFiltros();
+    renderDashboard();
+    toast('Dados atualizados', 'green');
+  } catch(e) { toast('Erro ao carregar: ' + e.message, 'red'); }
+}
+
+function atualizarFiltros() {
+  const opts = '<option value="">Todas</option>' + _empresas.map(e => `<option value="${e.id}">${e.nome}</option>`).join('');
+  ['filtro-empresa-prom','filtro-empresa-loja','filtro-empresa-prod',
+   'prom-empresa','loja-empresa','prod-empresa'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = id.startsWith('filtro') ? opts : opts.replace('Todas','Selecione');
+  });
+}
+
+// ── Dashboard ────────────────────────────────
+function renderDashboard() {
+  document.getElementById('st-empresas').textContent   = _empresas.filter(e => e.ativo).length;
+  document.getElementById('st-promotores').textContent = _promotores.filter(p => p.ativo).length;
+  document.getElementById('st-lojas').textContent      = _lojas.filter(l => l.ativo).length;
+  document.getElementById('st-produtos').textContent   = _produtos.length;
+
+  const tbody = document.getElementById('dash-empresas-tbody');
+  if (!_empresas.length) { tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="empty-icon">🏢</div>Nenhuma empresa cadastrada.</div></td></tr>`; return; }
+  tbody.innerHTML = _empresas.map(e => {
+    const proms = _promotores.filter(p => p.empresa_id === e.id).length;
+    const lojas = _lojas.filter(l => l.empresa_id === e.id).length;
+    return `<tr>
+      <td><strong>${e.nome}</strong></td>
+      <td class="mono" style="font-size:12px">${e.cnpj || '—'}</td>
+      <td><span class="badge b-brand">${proms} promotor${proms !== 1 ? 'es' : ''}</span></td>
+      <td><span class="badge b-gray">${lojas} loja${lojas !== 1 ? 's' : ''}</span></td>
+      <td><span class="badge ${e.ativo ? 'b-green' : 'b-red'}">${e.ativo ? 'Ativo' : 'Inativo'}</span></td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="navAdmin('promotores');document.getElementById('filtro-empresa-prom').value='${e.id}';renderPromotores()">Ver promotores</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Empresas ─────────────────────────────────
+async function criarEmpresa() {
+  const nome    = document.getElementById('emp-nome').value.trim();
+  const cnpj    = document.getElementById('emp-cnpj').value.trim();
+  const contato = document.getElementById('emp-contato').value.trim();
+  const email   = document.getElementById('emp-email').value.trim();
+  if (!nome) { toast('Informe o nome da empresa', 'red'); return; }
+  try {
+    const [emp] = await supa('empresas', { method:'POST', body:{ nome, cnpj, contato, email, ativo:true } });
+    _empresas.push(emp);
+    atualizarFiltros();
+    renderDashboard();
+    renderEmpresas();
+    toggleForm('form-empresa');
+    limparForm(['emp-nome','emp-cnpj','emp-contato','emp-email']);
+    toast('Empresa criada com sucesso! ✓', 'green');
+  } catch(e) { toast('Erro: ' + e.message, 'red'); }
+}
+
+function renderEmpresas() {
+  const tbody = document.getElementById('empresas-tbody');
+  if (!_empresas.length) { tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><div class="empty-icon">🏢</div>Nenhuma empresa ainda.</div></td></tr>`; return; }
+  tbody.innerHTML = _empresas.map(e => `<tr>
+    <td><strong>${e.nome}</strong></td>
+    <td class="mono" style="font-size:12px">${e.cnpj || '—'}</td>
+    <td>${e.contato || '—'}</td>
+    <td><span class="badge ${e.ativo ? 'b-green' : 'b-red'}">${e.ativo ? 'Ativo' : 'Inativo'}</span></td>
+    <td style="display:flex;gap:6px">
+      <button class="btn btn-ghost btn-sm" onclick="toggleEmpresa('${e.id}',${e.ativo})">${e.ativo ? 'Desativar' : 'Ativar'}</button>
+    </td>
+  </tr>`).join('');
+}
+
+async function toggleEmpresa(id, ativo) {
+  await supa(`empresas?id=eq.${id}`, { method:'PATCH', body:{ ativo: !ativo } });
+  const emp = _empresas.find(e => e.id === id);
+  if (emp) emp.ativo = !ativo;
+  renderEmpresas(); renderDashboard();
+  toast(`Empresa ${!ativo ? 'ativada' : 'desativada'}`);
+}
+
+// ── Promotores ───────────────────────────────
+async function criarPromotor() {
+  const empresa = document.getElementById('prom-empresa').value;
+  const nome    = document.getElementById('prom-nome').value.trim();
+  const cpf     = document.getElementById('prom-cpf').value.trim();
+  const senha   = document.getElementById('prom-senha').value.trim();
+  const perfil  = document.getElementById('prom-perfil').value;
+  const email   = document.getElementById('prom-email').value.trim();
+  if (!empresa) { toast('Selecione a empresa', 'red'); return; }
+  if (!nome)    { toast('Informe o nome', 'red'); return; }
+  if (!cpf)     { toast('Informe o CPF', 'red'); return; }
+  if (!senha)   { toast('Informe a senha', 'red'); return; }
+  try {
+    const [prom] = await supa('promotores', { method:'POST', body:{ empresa_id:empresa, nome, cpf, senha, perfil, email, ativo:true } });
+    _promotores.push(prom);
+    renderPromotores();
+    toggleForm('form-promotor');
+    limparForm(['prom-nome','prom-cpf','prom-senha','prom-email']);
+    toast(`Promotor ${nome} criado! ✓`, 'green');
+  } catch(e) { toast('Erro: ' + e.message, 'red'); }
+}
+
+function renderPromotores() {
+  const filtro = document.getElementById('filtro-empresa-prom')?.value;
+  const lista  = filtro ? _promotores.filter(p => p.empresa_id === filtro) : _promotores;
+  const tbody  = document.getElementById('promotores-tbody');
+  if (!lista.length) { tbody.innerHTML = `<tr><td colspan="8"><div class="empty"><div class="empty-icon">👤</div>Nenhum promotor encontrado.</div></td></tr>`; return; }
+  tbody.innerHTML = lista.map(p => {
+    const emp   = _empresas.find(e => e.id === p.empresa_id);
+    const nLojas = _lojas_prom.filter(lp => lp.promotor_id === p.id).length;
+    const perfBadge = { admin:'b-red', supervisor:'b-amber', promotor:'b-brand' }[p.perfil] || 'b-gray';
+    return `<tr>
+      <td><strong>${p.nome}</strong></td>
+      <td class="mono" style="font-size:12px">${p.cpf}</td>
+      <td>
+        <div class="pwd-row">
+          <span id="pwd-${p.id}" style="font-size:12px;color:var(--text3)">••••••</span>
+          <span class="pwd-copy" onclick="togglePwd('${p.id}','${p.senha}')" title="Mostrar senha">👁</span>
+          <span class="pwd-copy" onclick="copiar('${p.senha}')" title="Copiar">📋</span>
+        </div>
+      </td>
+      <td><span class="badge ${perfBadge}">${p.perfil}</span></td>
+      <td>${emp?.nome || '—'}</td>
+      <td><span class="badge b-gray">${nLojas} loja${nLojas !== 1 ? 's' : ''}</span></td>
+      <td><span class="badge ${p.ativo ? 'b-green' : 'b-red'}">${p.ativo ? 'Ativo' : 'Inativo'}</span></td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm" onclick="togglePromotor('${p.id}',${p.ativo})">${p.ativo ? 'Desativar' : 'Ativar'}</button>
+        <button class="btn btn-danger btn-sm" onclick="deletarPromotor('${p.id}','${p.nome}')">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function togglePwd(id, senha) {
+  const el = document.getElementById('pwd-' + id);
+  el.textContent = el.textContent === '••••••' ? senha : '••••••';
+}
+
+async function togglePromotor(id, ativo) {
+  await supa(`promotores?id=eq.${id}`, { method:'PATCH', body:{ ativo: !ativo } });
+  const p = _promotores.find(x => x.id === id);
+  if (p) p.ativo = !ativo;
+  renderPromotores();
+  toast(`Promotor ${!ativo ? 'ativado' : 'desativado'}`);
+}
+
+async function deletarPromotor(id, nome) {
+  if (!confirm(`Remover promotor "${nome}"? Esta ação não pode ser desfeita.`)) return;
+  await supa(`promotores?id=eq.${id}`, { method:'DELETE' });
+  _promotores = _promotores.filter(p => p.id !== id);
+  renderPromotores();
+  toast('Promotor removido');
+}
+
+// ── Lojas ────────────────────────────────────
+document.getElementById('loja-empresa').addEventListener('change', function() {
+  const empId = this.value;
+  const proms = _promotores.filter(p => p.empresa_id === empId && p.ativo);
+  const container = document.getElementById('loja-promotores-check');
+  if (!proms.length) { container.innerHTML = '<div style="font-size:12px;color:var(--text3)">Nenhum promotor nesta empresa.</div>'; return; }
+  container.innerHTML = proms.map(p => `
+    <label style="display:flex;align-items:center;gap:7px;font-size:13px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;cursor:pointer">
+      <input type="checkbox" value="${p.id}"> ${p.nome}
+      <span class="badge b-gray" style="font-size:10px;margin-left:auto">${p.perfil}</span>
+    </label>
+  `).join('');
+});
+
+async function criarLoja() {
+  const empresa  = document.getElementById('loja-empresa').value;
+  const nome     = document.getElementById('loja-nome').value.trim();
+  const rede     = document.getElementById('loja-rede').value.trim();
+  const cidade   = document.getElementById('loja-cidade').value.trim();
+  const endereco = document.getElementById('loja-endereco').value.trim();
+  if (!empresa) { toast('Selecione a empresa', 'red'); return; }
+  if (!nome)    { toast('Informe o nome da loja', 'red'); return; }
+
+  const promsSel = Array.from(document.querySelectorAll('#loja-promotores-check input:checked')).map(i => i.value);
+  try {
+    const [loja] = await supa('lojas', { method:'POST', body:{ empresa_id:empresa, nome, rede, cidade, endereco, ativo:true } });
+    _lojas.push(loja);
+    // Vincula promotores selecionados
+    if (promsSel.length) {
+      const vinculos = promsSel.map(pid => ({ promotor_id: pid, loja_id: loja.id }));
+      const novos = await supa('lojas_promotor', { method:'POST', body: vinculos });
+      _lojas_prom.push(...(novos || []));
+    }
+    renderLojas();
+    toggleForm('form-loja');
+    limparForm(['loja-nome','loja-rede','loja-cidade','loja-endereco']);
+    toast(`Loja "${nome}" criada! ✓`, 'green');
+  } catch(e) { toast('Erro: ' + e.message, 'red'); }
+}
+
+function renderLojas() {
+  const filtro = document.getElementById('filtro-empresa-loja')?.value;
+  const lista  = filtro ? _lojas.filter(l => l.empresa_id === filtro) : _lojas;
+  const tbody  = document.getElementById('lojas-tbody');
+  if (!lista.length) { tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="empty-icon">🏪</div>Nenhuma loja encontrada.</div></td></tr>`; return; }
+  tbody.innerHTML = lista.map(l => {
+    const emp   = _empresas.find(e => e.id === l.empresa_id);
+    const nProm = _lojas_prom.filter(lp => lp.loja_id === l.id).length;
+    return `<tr>
+      <td><strong>${l.nome}</strong></td>
+      <td>${l.rede || '—'}</td>
+      <td>${l.cidade || '—'}</td>
+      <td>${emp?.nome || '—'}</td>
+      <td><span class="badge b-brand">${nProm} promotor${nProm !== 1 ? 'es' : ''}</span></td>
+      <td><span class="badge ${l.ativo ? 'b-green' : 'b-red'}">${l.ativo ? 'Ativa' : 'Inativa'}</span></td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm" onclick="toggleLoja('${l.id}',${l.ativo})">${l.ativo ? 'Desativar' : 'Ativar'}</button>
+        <button class="btn btn-danger btn-sm" onclick="deletarLoja('${l.id}','${l.nome}')">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function toggleLoja(id, ativo) {
+  await supa(`lojas?id=eq.${id}`, { method:'PATCH', body:{ ativo: !ativo } });
+  const l = _lojas.find(x => x.id === id);
+  if (l) l.ativo = !ativo;
+  renderLojas();
+  toast(`Loja ${!ativo ? 'ativada' : 'desativada'}`);
+}
+
+async function deletarLoja(id, nome) {
+  if (!confirm(`Remover loja "${nome}"?`)) return;
+  await supa(`lojas?id=eq.${id}`, { method:'DELETE' });
+  _lojas = _lojas.filter(l => l.id !== id);
+  renderLojas();
+  toast('Loja removida');
+}
+
+// ── Produtos ─────────────────────────────────
+async function criarProduto() {
+  const empresa   = document.getElementById('prod-empresa').value;
+  const nome      = document.getElementById('prod-nome').value.trim();
+  const sku       = document.getElementById('prod-sku').value.trim();
+  const fornec    = document.getElementById('prod-fornecedor').value.trim();
+  const preco     = parseFloat(document.getElementById('prod-preco').value?.replace(',','.')) || 0;
+  const minimo    = parseInt(document.getElementById('prod-minimo').value) || 0;
+  if (!empresa) { toast('Selecione a empresa', 'red'); return; }
+  if (!nome)    { toast('Informe o nome do produto', 'red'); return; }
+  try {
+    const [prod] = await supa('produtos', { method:'POST', body:{ empresa_id:empresa, nome, sku, fornecedor:fornec, preco_sugerido:preco, estoque_minimo:minimo, ativo:true } });
+    _produtos.push(prod);
+    renderProdutos();
+    toggleForm('form-produto');
+    limparForm(['prod-nome','prod-sku','prod-fornecedor','prod-preco','prod-minimo']);
+    toast(`Produto "${nome}" criado! ✓`, 'green');
+  } catch(e) { toast('Erro: ' + e.message, 'red'); }
+}
+
+function renderProdutos() {
+  const filtro = document.getElementById('filtro-empresa-prod')?.value;
+  const lista  = filtro ? _produtos.filter(p => p.empresa_id === filtro) : _produtos;
+  const tbody  = document.getElementById('produtos-tbody');
+  if (!lista.length) { tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="empty-icon">📦</div>Nenhum produto encontrado.</div></td></tr>`; return; }
+  tbody.innerHTML = lista.map(p => {
+    const emp = _empresas.find(e => e.id === p.empresa_id);
+    return `<tr>
+      <td><strong>${p.nome}</strong></td>
+      <td class="mono" style="font-size:12px">${p.sku || '—'}</td>
+      <td>${p.fornecedor || '—'}</td>
+      <td class="mono">${p.preco_sugerido ? 'R$ ' + Number(p.preco_sugerido).toFixed(2).replace('.',',') : '—'}</td>
+      <td>${p.estoque_minimo || 0}</td>
+      <td>${emp?.nome || '—'}</td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-danger btn-sm" onclick="deletarProduto('${p.id}','${p.nome}')">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function deletarProduto(id, nome) {
+  if (!confirm(`Remover produto "${nome}"?`)) return;
+  await supa(`produtos?id=eq.${id}`, { method:'PATCH', body:{ ativo:false } });
+  _produtos = _produtos.filter(p => p.id !== id);
+  renderProdutos();
+  toast('Produto removido');
+}
+
+// ── Acessos ──────────────────────────────────
+function renderAcessos() {
+  const tbody = document.getElementById('acessos-tbody');
+  const ativos = _promotores.filter(p => p.ativo);
+  if (!ativos.length) { tbody.innerHTML = `<tr><td colspan="6"><div class="empty">Nenhum acesso ativo.</div></td></tr>`; return; }
+  tbody.innerHTML = ativos.map(p => {
+    const emp = _empresas.find(e => e.id === p.empresa_id);
+    const perfBadge = { admin:'b-red', supervisor:'b-amber', promotor:'b-brand' }[p.perfil] || 'b-gray';
+    return `<tr>
+      <td><strong>${p.nome}</strong></td>
+      <td class="mono" style="font-size:13px">${p.cpf}</td>
+      <td>
+        <div class="pwd-row">
+          <span id="ac-pwd-${p.id}" style="font-size:12px;color:var(--text3)">••••••</span>
+          <span class="pwd-copy" onclick="togglePwd('ac-pwd-${p.id.replace(/[^a-zA-Z0-9]/g,'')}','${p.senha}')" title="Mostrar">👁</span>
+          <span class="pwd-copy" onclick="copiar('${p.cpf} / ${p.senha}')" title="Copiar acesso">📋</span>
+        </div>
+      </td>
+      <td><span class="badge ${perfBadge}">${p.perfil}</span></td>
+      <td>${emp?.nome || '—'}</td>
+      <td><span class="badge b-green">Ativo</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function exportarAcessos() {
+  const header = 'Nome,CPF,Senha,Perfil,Empresa\n';
+  const rows = _promotores.filter(p => p.ativo).map(p => {
+    const emp = _empresas.find(e => e.id === p.empresa_id);
+    return `"${p.nome}","${p.cpf}","${p.senha}","${p.perfil}","${emp?.nome || ''}"`;
+  }).join('\n');
+  const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'smartpdv_acessos.csv';
+  a.click();
+  toast('CSV exportado! ✓', 'green');
+}
+
+// ── Utilitários ──────────────────────────────
+function toggleForm(id) {
+  const el = document.getElementById(id);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function limparForm(ids) { ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; }); }
+
+function maskCPFInput(input) {
+  let v = input.value.replace(/\D/g, '').slice(0, 11);
+  v = v.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  input.value = v;
+}
+
+function copiar(txt) {
+  navigator.clipboard.writeText(txt).then(() => toast('Copiado! ✓', 'green'));
+}
+
+let _toastTimer;
+function toast(msg, tipo = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (tipo ? ' ' + tipo : '');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.className = '', 2800);
+}
+
+// ── Init ─────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem('spdv_admin')) {
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('admin-shell').style.display = 'flex';
+    recarregarTudo();
+  }
+  document.getElementById('adm-pass').addEventListener('keydown', e => {
+    if (e.key === 'Enter') loginAdmin();
+  });
+});
+</script>
+</body>
+</html>
