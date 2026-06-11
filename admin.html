@@ -300,6 +300,9 @@ tr:hover td { background: var(--surface2); }
       <button class="sb-item" onclick="navAdmin('produtos')" id="nav-produtos">
         <span class="sb-icon">📦</span> Produtos
       </button>
+      <button class="sb-item" onclick="navAdmin('similares')" id="nav-similares">
+        <span class="sb-icon">🔄</span> Similares
+      </button>
       <div class="sb-section">Sistema</div>
       <button class="sb-item" onclick="navAdmin('acessos')" id="nav-acessos">
         <span class="sb-icon">🔑</span> Acessos
@@ -587,6 +590,71 @@ tr:hover td { background: var(--surface2); }
         </div>
       </div>
 
+      <!-- ── SIMILARES ── -->
+      <div id="pg-similares" style="display:none">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Similares de concorrentes</div>
+            <div class="page-sub">Vincule cada produto seu ao produto similar do concorrente — usado na pesquisa de preços do app</div>
+          </div>
+          <button class="btn btn-primary" onclick="toggleForm('form-similar')">+ Novo similar</button>
+        </div>
+
+        <!-- Formulário -->
+        <div class="card" id="form-similar" style="display:none">
+          <div class="card-head"><div class="card-title">Novo vínculo de similar</div></div>
+          <div class="card-body">
+            <div class="form-grid g2" style="margin-bottom:14px">
+              <div class="field">
+                <label>Empresa *</label>
+                <select id="sim-empresa" onchange="atualizarProdutosSim()"><option value="">Selecione a empresa</option></select>
+              </div>
+              <div class="field">
+                <label>Meu produto *</label>
+                <select id="sim-produto"><option value="">Selecione a empresa primeiro</option></select>
+              </div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;margin-bottom:14px">
+              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Produto similar do concorrente</div>
+              <div class="form-grid g3">
+                <div class="field">
+                  <label>Empresa concorrente *</label>
+                  <input type="text" id="sim-empresa-conc" placeholder="Ex: Concorrente A, Marca XYZ">
+                </div>
+                <div class="field">
+                  <label>Nome do produto similar *</label>
+                  <input type="text" id="sim-nome-similar" placeholder="Ex: Assento Rival — 500ml">
+                </div>
+                <div class="field">
+                  <label>Preço médio concorrente (R$)</label>
+                  <input type="text" id="sim-preco-ref" placeholder="0,00" inputmode="decimal">
+                  <div class="field-hint">Referência inicial — atualizado pelo promotor</div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary" onclick="criarSimilar()">Salvar similar</button>
+              <button class="btn btn-ghost" onclick="toggleForm('form-similar')">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filtros -->
+        <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center;flex-wrap:wrap">
+          <label style="font-size:13px;font-weight:600;color:var(--text2)">Empresa:</label>
+          <select id="filtro-empresa-sim" onchange="renderSimilares()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--surface);outline:none">
+            <option value="">Todas</option>
+          </select>
+          <label style="font-size:13px;font-weight:600;color:var(--text2);margin-left:8px">Produto:</label>
+          <select id="filtro-produto-sim" onchange="renderSimilares()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--surface);outline:none">
+            <option value="">Todos</option>
+          </select>
+        </div>
+
+        <!-- Tabela agrupada por produto -->
+        <div id="similares-lista"></div>
+      </div>
+
       <!-- ── ACESSOS ── -->
       <div id="pg-acessos" style="display:none">
         <div class="page-header">
@@ -629,6 +697,7 @@ let _promotores = [];
 let _lojas      = [];
 let _produtos   = [];
 let _lojas_prom = []; // vínculos loja <-> promotor
+let _similares  = []; // similares de concorrentes
 
 // ── Supabase helper ──────────────────────────
 async function supa(path, opts = {}) {
@@ -668,29 +737,31 @@ function logoutAdmin() {
 }
 
 // ── Navegação ────────────────────────────────
-const PAGES = ['dashboard','empresas','promotores','lojas','produtos','acessos'];
+const PAGES = ['dashboard','empresas','promotores','lojas','produtos','similares','acessos'];
 function navAdmin(pg) {
   PAGES.forEach(p => {
     document.getElementById('pg-' + p).style.display = p === pg ? 'block' : 'none';
     document.getElementById('nav-' + p)?.classList.toggle('active', p === pg);
   });
-  const titles = { dashboard:'Dashboard', empresas:'Empresas', promotores:'Promotores', lojas:'Lojas / PDVs', produtos:'Produtos', acessos:'Acessos' };
+  const titles = { dashboard:'Dashboard', empresas:'Empresas', promotores:'Promotores', lojas:'Lojas / PDVs', produtos:'Produtos', similares:'Similares', acessos:'Acessos' };
   document.getElementById('topbar-title').textContent = titles[pg] || pg;
   if (pg === 'promotores') renderPromotores();
   if (pg === 'lojas')      renderLojas();
   if (pg === 'produtos')   renderProdutos();
+  if (pg === 'similares')  renderSimilares();
   if (pg === 'acessos')    renderAcessos();
 }
 
 // ── Carregar todos os dados ──────────────────
 async function recarregarTudo() {
   try {
-    [_empresas, _promotores, _lojas, _produtos, _lojas_prom] = await Promise.all([
+    [_empresas, _promotores, _lojas, _produtos, _lojas_prom, _similares] = await Promise.all([
       supa('empresas?order=nome&select=*'),
       supa('promotores?order=nome&select=*'),
       supa('lojas?order=nome&select=*'),
       supa('produtos?ativo=eq.true&order=nome&select=*'),
-      supa('lojas_promotor?select=*')
+      supa('lojas_promotor?select=*'),
+      supa('similares_concorrentes?order=created_at.desc&select=*')
     ]);
     atualizarFiltros();
     renderDashboard();
@@ -700,8 +771,8 @@ async function recarregarTudo() {
 
 function atualizarFiltros() {
   const opts = '<option value="">Todas</option>' + _empresas.map(e => `<option value="${e.id}">${e.nome}</option>`).join('');
-  ['filtro-empresa-prom','filtro-empresa-loja','filtro-empresa-prod',
-   'prom-empresa','loja-empresa','prod-empresa'].forEach(id => {
+  ['filtro-empresa-prom','filtro-empresa-loja','filtro-empresa-prod','filtro-empresa-sim',
+   'prom-empresa','loja-empresa','prod-empresa','sim-empresa'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = id.startsWith('filtro') ? opts : opts.replace('Todas','Selecione');
   });
@@ -1128,6 +1199,149 @@ async function deletarProduto(id, nome) {
   _produtos = _produtos.filter(p => p.id !== id);
   renderProdutos();
   toast('Produto removido');
+}
+
+// ── Similares ────────────────────────────────
+
+function atualizarProdutosSim() {
+  const empId = document.getElementById('sim-empresa').value;
+  const sel   = document.getElementById('sim-produto');
+  const prods = _produtos.filter(p => p.empresa_id === empId);
+  sel.innerHTML = prods.length
+    ? '<option value="">Selecione o produto</option>' + prods.map(p => `<option value="${p.id}">${p.nome}${p.sku ? ' — '+p.sku : ''}</option>`).join('')
+    : '<option value="">Nenhum produto nesta empresa</option>';
+  // Atualiza filtro de produto
+  const fp = document.getElementById('filtro-produto-sim');
+  fp.innerHTML = '<option value="">Todos</option>' + prods.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+}
+
+async function criarSimilar() {
+  const empId    = document.getElementById('sim-empresa').value;
+  const prodId   = document.getElementById('sim-produto').value;
+  const empConc  = document.getElementById('sim-empresa-conc').value.trim();
+  const nomeSim  = document.getElementById('sim-nome-similar').value.trim();
+  const precoRef = parseFloat(document.getElementById('sim-preco-ref').value?.replace(',','.')) || 0;
+  if (!empId)   { toast('Selecione a empresa', 'red'); return; }
+  if (!prodId)  { toast('Selecione o produto', 'red'); return; }
+  if (!empConc) { toast('Informe a empresa concorrente', 'red'); return; }
+  if (!nomeSim) { toast('Informe o nome do produto similar', 'red'); return; }
+  try {
+    const [sim] = await supa('similares_concorrentes', {
+      method: 'POST',
+      body: { empresa_id: empId, produto_id: prodId, empresa_concorrente: empConc, produto_similar: nomeSim, preco_referencia: precoRef }
+    });
+    _similares.push(sim);
+    renderSimilares();
+    toggleForm('form-similar');
+    limparForm(['sim-empresa-conc','sim-nome-similar','sim-preco-ref']);
+    document.getElementById('sim-produto').value = '';
+    toast(`Similar adicionado! ✓`, 'green');
+  } catch(e) { toast('Erro: ' + e.message, 'red'); }
+}
+
+function renderSimilares() {
+  const filtroEmp  = document.getElementById('filtro-empresa-sim')?.value;
+  const filtroProd = document.getElementById('filtro-produto-sim')?.value;
+  let lista = [..._similares];
+  if (filtroEmp)  lista = lista.filter(s => s.empresa_id === filtroEmp);
+  if (filtroProd) lista = lista.filter(s => s.produto_id === filtroProd);
+
+  const container = document.getElementById('similares-lista');
+  if (!lista.length) {
+    container.innerHTML = `<div class="card"><div class="empty"><div class="empty-icon">🔄</div>Nenhum similar cadastrado. Clique em "+ Novo similar" para começar.</div></div>`;
+    return;
+  }
+
+  // Atualiza filtro de produto baseado na empresa selecionada
+  const prods = filtroEmp ? _produtos.filter(p => p.empresa_id === filtroEmp) : _produtos;
+  const fp = document.getElementById('filtro-produto-sim');
+  if (fp) {
+    const cur = fp.value;
+    fp.innerHTML = '<option value="">Todos</option>' + prods.map(p => `<option value="${p.id}" ${p.id===cur?'selected':''}>${p.nome}</option>`).join('');
+  }
+
+  // Agrupa por produto
+  const porProduto = {};
+  lista.forEach(s => {
+    if (!porProduto[s.produto_id]) porProduto[s.produto_id] = [];
+    porProduto[s.produto_id].push(s);
+  });
+
+  container.innerHTML = Object.entries(porProduto).map(([pid, sims]) => {
+    const prod = _produtos.find(p => p.id === pid);
+    const emp  = _empresas.find(e => e.id === sims[0].empresa_id);
+    const precoMeu = prod?.preco_sugerido ? Number(prod.preco_sugerido) : 0;
+    return `
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-head" style="background:var(--surface2)">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:36px;height:36px;border-radius:8px;background:var(--brand-bg);border:1px solid var(--brand-mid);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📦</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">${prod?.nome || '—'}</div>
+            <div style="font-size:11px;color:var(--text3)">
+              ${prod?.sku ? 'SKU: '+prod.sku+' · ' : ''}
+              ${prod?.fornecedor ? prod.fornecedor+' · ' : ''}
+              ${emp?.nome || ''}
+              ${precoMeu ? ' · <strong style="color:var(--brand)">R$ '+precoMeu.toFixed(2).replace('.',',')+' (meu preço)</strong>' : ''}
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="abrirFormSimilarProduto('${pid}','${sims[0].empresa_id}')">+ Adicionar concorrente</button>
+      </div>
+      <div class="card-body" style="padding:0">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead>
+            <tr style="background:var(--surface2)">
+              <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border)">Concorrente</th>
+              <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border)">Produto similar</th>
+              <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border)">Preço ref.</th>
+              <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border)">Diferença</th>
+              <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border)">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${sims.map(s => {
+              const precoConc = s.preco_referencia ? Number(s.preco_referencia) : 0;
+              const diff = precoMeu && precoConc ? precoConc - precoMeu : null;
+              const diffTxt = diff !== null
+                ? `<span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:${diff>0?'var(--green)':diff<0?'var(--red)':'var(--text3)'}">${diff>0?'+':''}R$ ${diff.toFixed(2).replace('.',',')} ${diff>0?'(mais caro)':diff<0?'(mais barato)':''}</span>`
+                : '<span style="color:var(--text3)">—</span>';
+              return `<tr>
+                <td style="padding:11px 14px;border-bottom:1px solid var(--border)">
+                  <span style="font-weight:600">${s.empresa_concorrente}</span>
+                </td>
+                <td style="padding:11px 14px;border-bottom:1px solid var(--border);color:var(--text2)">${s.produto_similar}</td>
+                <td style="padding:11px 14px;border-bottom:1px solid var(--border)">
+                  ${precoConc ? `<span style="font-family:'DM Mono',monospace;font-size:13px">R$ ${precoConc.toFixed(2).replace('.',',')}</span>` : '<span style="color:var(--text3)">—</span>'}
+                </td>
+                <td style="padding:11px 14px;border-bottom:1px solid var(--border)">${diffTxt}</td>
+                <td style="padding:11px 14px;border-bottom:1px solid var(--border)">
+                  <button class="btn btn-danger btn-sm" onclick="deletarSimilar('${s.id}','${s.empresa_concorrente}')">✕</button>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function abrirFormSimilarProduto(prodId, empId) {
+  document.getElementById('form-similar').style.display = 'block';
+  document.getElementById('sim-empresa').value = empId;
+  atualizarProdutosSim();
+  document.getElementById('sim-produto').value = prodId;
+  document.getElementById('sim-empresa-conc').focus();
+  document.getElementById('form-similar').scrollIntoView({ behavior:'smooth' });
+}
+
+async function deletarSimilar(id, nome) {
+  if (!confirm(`Remover similar "${nome}"?`)) return;
+  await supa(`similares_concorrentes?id=eq.${id}`, { method:'DELETE' });
+  _similares = _similares.filter(s => s.id !== id);
+  renderSimilares();
+  toast('Similar removido');
 }
 
 // ── Acessos ──────────────────────────────────
