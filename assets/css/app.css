@@ -1012,3 +1012,10 @@ input, select, textarea, button { font-family: inherit; }
   padding: 1px 6px; border-radius: 4px;
   margin-left: 4px;
 }
+
+/* Fornecedor — exibido acima do nome do produto */
+.est-fornecedor {
+  font-size: 10px; font-weight: 700;
+  color: var(--brand); text-transform: uppercase;
+  letter-spacing: .04em; margin-bottom: 2px;
+}
