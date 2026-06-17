@@ -280,7 +280,7 @@ async function renderEstoque() {
       <div class="est-item-header">
         <div>
           ${p.fornecedor ? `<div class="est-fornecedor">${p.fornecedor}</div>` : ''}
-          <div class="est-item-nome">${p.sku ? `<span class="est-sku">${p.sku}</span>` : ''}${p.nome}</div>
+          <div class="est-item-nome">${p.sku ? `<span class="est-sku">${p.sku}</span>` : ''}${p.codigo_empresa ? `<span class="est-sku est-sku-empresa">${p.codigo_empresa}</span>` : ''}${p.nome}</div>
         </div>
         <div class="est-item-preco-ref">${p.preco_sugerido ? moeda(p.preco_sugerido) : ''}</div>
       </div>
@@ -463,7 +463,7 @@ function itemEstoqueSalvo(e) {
     <div class="est-item-header">
       <div>
         ${prod?.fornecedor ? `<div class="est-fornecedor">${prod.fornecedor}</div>` : ''}
-        <div class="est-item-nome">${prod?.sku ? `<span class="est-sku">${prod.sku}</span>` : ''}${prod?.nome || e.nome_produto || e.produto_id}${ruptura}</div>
+        <div class="est-item-nome">${prod?.sku ? `<span class="est-sku">${prod.sku}</span>` : ''}${prod?.codigo_empresa ? `<span class="est-sku est-sku-empresa">${prod.codigo_empresa}</span>` : ''}${prod?.nome || e.nome_produto || e.produto_id}${ruptura}</div>
       </div>
       <div class="est-item-preco-ref">${moeda(e.preco)}</div>
     </div>
