@@ -1003,3 +1003,12 @@ input, select, textarea, button { font-family: inherit; }
   transition: background .15s;
 }
 .btn-confirmar-similar:active { background: #15803d; }
+
+/* SKU concorrente — exibido como tag fixa, não editável pelo promotor */
+.sim-sku-fixo {
+  font-size: 10px; font-weight: 600;
+  color: var(--text3); font-family: 'DM Mono', monospace;
+  background: var(--surface2); border: 1px solid var(--border);
+  padding: 1px 6px; border-radius: 4px;
+  margin-left: 4px;
+}
