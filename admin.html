@@ -644,7 +644,7 @@ tr:hover td { background: var(--surface2); }
             </div>
             <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;margin-bottom:14px">
               <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Produto similar do concorrente</div>
-              <div class="form-grid g3">
+              <div class="form-grid g2" style="margin-bottom:14px">
                 <div class="field">
                   <label>Empresa concorrente *</label>
                   <input type="text" id="sim-empresa-conc" placeholder="Ex: Concorrente A, Marca XYZ">
@@ -652,6 +652,13 @@ tr:hover td { background: var(--surface2); }
                 <div class="field">
                   <label>Nome do produto similar *</label>
                   <input type="text" id="sim-nome-similar" placeholder="Ex: Assento Rival — 500ml">
+                </div>
+              </div>
+              <div class="form-grid g2">
+                <div class="field">
+                  <label>SKU / Código do concorrente</label>
+                  <input type="text" id="sim-sku-conc" placeholder="Ex: COD-9981">
+                  <div class="field-hint">Fixo — não precisa ser digitado pelo promotor depois</div>
                 </div>
                 <div class="field">
                   <label>Preço médio concorrente (R$)</label>
@@ -1408,6 +1415,7 @@ async function criarSimilar() {
   const prodId   = document.getElementById('sim-produto').value;
   const empConc  = document.getElementById('sim-empresa-conc').value.trim();
   const nomeSim  = document.getElementById('sim-nome-similar').value.trim();
+  const skuConc  = document.getElementById('sim-sku-conc').value.trim();
   const precoRef = parseFloat(document.getElementById('sim-preco-ref').value?.replace(',','.')) || 0;
   if (!empId)   { toast('Selecione a empresa', 'red'); return; }
   if (!prodId)  { toast('Selecione o produto', 'red'); return; }
@@ -1416,12 +1424,12 @@ async function criarSimilar() {
   try {
     const [sim] = await supa('similares_concorrentes', {
       method: 'POST',
-      body: { empresa_id: empId, produto_id: prodId, empresa_concorrente: empConc, produto_similar: nomeSim, preco_referencia: precoRef }
+      body: { empresa_id: empId, produto_id: prodId, empresa_concorrente: empConc, produto_similar: nomeSim, sku_concorrente: skuConc || null, preco_referencia: precoRef }
     });
     _similares.push(sim);
     renderSimilares();
     toggleForm('form-similar');
-    limparForm(['sim-empresa-conc','sim-nome-similar','sim-preco-ref']);
+    limparForm(['sim-empresa-conc','sim-nome-similar','sim-sku-conc','sim-preco-ref']);
     document.getElementById('sim-produto').value = '';
     toast(`Similar adicionado! ✓`, 'green');
   } catch(e) { toast('Erro: ' + e.message, 'red'); }
@@ -1482,6 +1490,7 @@ function renderSimilares() {
             <tr style="background:var(--surface2)">
               <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border)">Concorrente</th>
               <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border)">Produto similar</th>
+              <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border)">SKU</th>
               <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border)">Preço ref.</th>
               <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border)">Diferença</th>
               <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border)">Ações</th>
@@ -1499,6 +1508,9 @@ function renderSimilares() {
                   <span style="font-weight:600">${s.empresa_concorrente}</span>
                 </td>
                 <td style="padding:11px 14px;border-bottom:1px solid var(--border);color:var(--text2)">${s.produto_similar}</td>
+                <td style="padding:11px 14px;border-bottom:1px solid var(--border)">
+                  ${s.sku_concorrente ? `<span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text3)">${s.sku_concorrente}</span>` : '<span style="color:var(--text3)">—</span>'}
+                </td>
                 <td style="padding:11px 14px;border-bottom:1px solid var(--border)">
                   ${precoConc ? `<span style="font-family:'DM Mono',monospace;font-size:13px">R$ ${precoConc.toFixed(2).replace('.',',')}</span>` : '<span style="color:var(--text3)">—</span>'}
                 </td>
