@@ -22,11 +22,22 @@ async function supa(path, options = {}) {
     method: options.method || 'GET',
     body: options.body ? JSON.stringify(options.body) : undefined
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || `HTTP ${res.status}`);
+
+  // Lê o corpo como texto primeiro — evita erro de "Unexpected end of JSON input"
+  const raw = await res.text();
+  let data = null;
+  if (raw) {
+    try { data = JSON.parse(raw); }
+    catch(e) { data = raw; } // corpo não-JSON (ex: mensagem de erro em texto puro)
   }
-  return res.status === 204 ? null : res.json();
+
+  if (!res.ok) {
+    const msg = (data && typeof data === 'object' && data.message) ? data.message
+              : (typeof data === 'string' && data) ? data
+              : `HTTP ${res.status}`;
+    throw new Error(msg);
+  }
+  return data;
 }
 
 async function supaAuth(cpf, senha) {
