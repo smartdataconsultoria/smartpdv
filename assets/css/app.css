@@ -1019,3 +1019,10 @@ input, select, textarea, button { font-family: inherit; }
   color: var(--brand); text-transform: uppercase;
   letter-spacing: .04em; margin-bottom: 2px;
 }
+
+/* Código da empresa (cliente) — visualmente distinto do código do fornecedor */
+.est-sku-empresa {
+  color: var(--text2);
+  background: var(--surface2);
+  border-color: var(--border2);
+}
