@@ -193,18 +193,59 @@ async function carregarResumoHome() {
   if (!_lojaId) return;
   const hoje = dataHoje();
   try {
-    const [estoques, avarias, checklist, concorrentes] = await Promise.all([
-      supa(`estoque_lancamentos?loja_id=eq.${_lojaId}&data=eq.${hoje}&select=status`),
-      supa(`avarias?loja_id=eq.${_lojaId}&data=eq.${hoje}&select=id`),
+    const [estoques, avarias, checklist, concorrentes, oportunidades] = await Promise.all([
+      supa(`estoque_lancamentos?loja_id=eq.${_lojaId}&data=eq.${hoje}&select=status,produto_id,sistema,qtd_vendida,preco`),
+      supa(`avarias?loja_id=eq.${_lojaId}&data=eq.${hoje}&select=id,quantidade,produto_id`),
       supa(`checklists?promotor_id=eq.${_user.id}&loja_id=eq.${_lojaId}&data=eq.${hoje}&select=progresso`),
-      supa(`precos_concorrentes?loja_id=eq.${_lojaId}&data=eq.${hoje}&select=id`)
+      supa(`precos_concorrentes?loja_id=eq.${_lojaId}&data=eq.${hoje}&select=id`),
+      supa(`oportunidades?loja_id=eq.${_lojaId}&status=eq.aberta&select=id`)
     ]);
     const alertas = estoques.filter(x => x.status !== 'ok').length;
     el('home-est-alert').textContent = alertas || '✓';
     el('home-av').textContent = avarias.length || '0';
     const prog = checklist?.[0]?.progresso || 0;
     el('home-expo-pct').textContent = prog + '%';
-    el('home-op').textContent = concorrentes.length || '0';
+    el('home-op').textContent = oportunidades.length || '0';
+
+    // Card "Estoque & Preços" na home — resumo do que foi lançado hoje
+    const estBody = el('home-est-body');
+    if (estBody) {
+      if (estoques.length > 0) {
+        const totalProdutos = estoques.length;
+        const totalVendido = estoques.reduce((s, e) => s + (Number(e.qtd_vendida) || 0), 0);
+        const totalConcPrecos = concorrentes.length;
+        estBody.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:12px;color:var(--text2)">✓ <strong>${totalProdutos}</strong> produto${totalProdutos !== 1 ? 's' : ''} lançado${totalProdutos !== 1 ? 's' : ''} hoje</span>
+            <span style="font-size:12px;color:var(--green);font-weight:600">${totalVendido} vendido(s)</span>
+          </div>
+          ${totalConcPrecos > 0 ? `<div style="font-size:11px;color:var(--text3);margin-top:4px">🏁 ${totalConcPrecos} preço${totalConcPrecos !== 1 ? 's' : ''} de concorrente registrado${totalConcPrecos !== 1 ? 's' : ''}</div>` : ''}
+        `;
+      } else {
+        estBody.innerHTML = '<div style="font-size:12px;color:var(--text3)">Nenhum registro hoje.</div>';
+      }
+    }
+
+    // Card "Avarias" na home
+    const avBody = el('home-av-body');
+    if (avBody) {
+      if (avarias.length > 0) {
+        const totalQtd = avarias.reduce((s, a) => s + (Number(a.quantidade) || 0), 0);
+        avBody.innerHTML = `<div style="font-size:12px;color:var(--text2)">⚠️ <strong>${avarias.length}</strong> avaria${avarias.length !== 1 ? 's' : ''} hoje · ${totalQtd} unidade${totalQtd !== 1 ? 's' : ''}</div>`;
+      } else {
+        avBody.innerHTML = '<div style="font-size:12px;color:var(--text3)">Nenhuma avaria.</div>';
+      }
+    }
+
+    // Card "Oportunidades" na home
+    const opBody = el('home-op-body');
+    if (opBody) {
+      if (oportunidades.length > 0) {
+        opBody.innerHTML = `<div style="font-size:12px;color:var(--text2)">💡 <strong>${oportunidades.length}</strong> oportunidade${oportunidades.length !== 1 ? 's' : ''} em aberto</div>`;
+      } else {
+        opBody.innerHTML = '<div style="font-size:12px;color:var(--text3)">Nenhuma oportunidade.</div>';
+      }
+    }
   } catch(e) { console.warn('Resumo home:', e); }
 }
 
