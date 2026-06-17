@@ -159,8 +159,8 @@ function atualizarHome() {
   const h = new Date().getHours();
   el('greeting').textContent = h < 12 ? 'Bom dia!' : h < 18 ? 'Boa tarde!' : 'Boa noite!';
   atualizarData();
-  carregarMetaHome();
   carregarResumoHome();
+  carregarInteligenciaProdutos();
 }
 
 function atualizarData() {
@@ -206,6 +206,100 @@ async function carregarResumoHome() {
     el('home-expo-pct').textContent = prog + '%';
     el('home-op').textContent = concorrentes.length || '0';
   } catch(e) { console.warn('Resumo home:', e); }
+}
+
+// ── Inteligência de produtos: top vendidos e sem giro (últimos 30 dias) ──
+async function carregarInteligenciaProdutos() {
+  if (!_lojaId) {
+    el('home-top-vendidos').innerHTML = '<div style="font-size:12px;color:var(--text3);text-align:center;padding:16px">Selecione uma loja.</div>';
+    el('home-sem-giro').innerHTML = '<div style="font-size:12px;color:var(--text3);text-align:center;padding:16px">Selecione uma loja.</div>';
+    return;
+  }
+  try {
+    const dataLimite = new Date();
+    dataLimite.setDate(dataLimite.getDate() - 30);
+    const dataLimiteStr = dataLimite.toISOString().split('T')[0];
+
+    const lancamentos = await supa(
+      `estoque_lancamentos?loja_id=eq.${_lojaId}&data=gte.${dataLimiteStr}&select=produto_id,qtd_vendida,data`
+    );
+
+    // Agrupa por produto: soma vendido e pega a última data de lançamento
+    const porProduto = {};
+    (lancamentos || []).forEach(l => {
+      if (!porProduto[l.produto_id]) porProduto[l.produto_id] = { totalVendido: 0, ultimaData: l.data, qtdLancamentos: 0 };
+      porProduto[l.produto_id].totalVendido += Number(l.qtd_vendida) || 0;
+      porProduto[l.produto_id].qtdLancamentos += 1;
+      if (l.data > porProduto[l.produto_id].ultimaData) porProduto[l.produto_id].ultimaData = l.data;
+    });
+
+    const produtosDaLoja = _produtos.filter(p => {
+      const lojas = p.loja_ids || [];
+      return lojas.length === 0 || lojas.includes(_lojaId);
+    });
+
+    // Monta lista combinando produto + dados agregados (produtos sem lançamento = 0 vendido)
+    const lista = produtosDaLoja.map(p => {
+      const dados = porProduto[p.id] || { totalVendido: 0, qtdLancamentos: 0 };
+      return { produto: p, totalVendido: dados.totalVendido, qtdLancamentos: dados.qtdLancamentos };
+    });
+
+    // Top vendidos: ordena por totalVendido desc, só os que venderam algo
+    const topVendidos = lista
+      .filter(x => x.totalVendido > 0)
+      .sort((a, b) => b.totalVendido - a.totalVendido)
+      .slice(0, 5);
+
+    // Sem giro: tiveram lançamento mas venderam 0 no período
+    const semGiro = lista
+      .filter(x => x.qtdLancamentos > 0 && x.totalVendido === 0)
+      .slice(0, 5);
+
+    renderTopVendidos(topVendidos);
+    renderSemGiro(semGiro);
+  } catch(e) {
+    console.warn('Inteligência produtos:', e);
+    el('home-top-vendidos').innerHTML = '<div style="font-size:12px;color:var(--text3);text-align:center;padding:16px">Não foi possível carregar.</div>';
+    el('home-sem-giro').innerHTML = '<div style="font-size:12px;color:var(--text3);text-align:center;padding:16px">Não foi possível carregar.</div>';
+  }
+}
+
+function renderTopVendidos(lista) {
+  const container = el('home-top-vendidos');
+  if (!lista.length) {
+    container.innerHTML = '<div style="font-size:12px;color:var(--text3);text-align:center;padding:16px">Nenhuma venda registrada ainda.</div>';
+    return;
+  }
+  const maxVendido = lista[0].totalVendido;
+  container.innerHTML = lista.map((item, i) => {
+    const pct = maxVendido > 0 ? (item.totalVendido / maxVendido * 100) : 0;
+    return `
+    <div class="rank-prod-row">
+      <div class="rank-prod-pos">${i + 1}</div>
+      <div class="rank-prod-info">
+        <div class="rank-prod-nome">${item.produto.nome}</div>
+        <div class="rank-prod-bar"><div class="rank-prod-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="rank-prod-valor">${item.totalVendido}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderSemGiro(lista) {
+  const container = el('home-sem-giro');
+  if (!lista.length) {
+    container.innerHTML = '<div style="font-size:12px;color:var(--green);text-align:center;padding:16px">✓ Nenhum produto parado nos últimos 30 dias.</div>';
+    return;
+  }
+  container.innerHTML = lista.map(item => `
+    <div class="semgiro-row">
+      <span class="semgiro-icon">🐌</span>
+      <div class="semgiro-info">
+        <div class="semgiro-nome">${item.produto.nome}</div>
+        <div class="semgiro-det">${item.qtdLancamentos} lançamento${item.qtdLancamentos !== 1 ? 's' : ''} · 0 vendido(s)</div>
+      </div>
+    </div>
+  `).join('');
 }
 
 // ─── ESTOQUE ─────────────────────────────────
@@ -1158,6 +1252,7 @@ function selecionarLoja(id, nome) {
     if (el(id)) el(id).textContent = nome;
   });
   carregarResumoHome();
+  carregarInteligenciaProdutos();
 }
 
 // ─── PONTUAÇÃO ───────────────────────────────
