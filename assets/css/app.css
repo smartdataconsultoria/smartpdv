@@ -1026,3 +1026,55 @@ input, select, textarea, button { font-family: inherit; }
   background: var(--surface2);
   border-color: var(--border2);
 }
+
+/* ══════════════════════════════════════════════
+   HOME — Top vendidos e Sem giro
+══════════════════════════════════════════════ */
+
+/* Linha do ranking de produto vendido */
+.rank-prod-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.rank-prod-row:last-child { border-bottom: none; }
+.rank-prod-pos {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--brand-bg); color: var(--brand);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+}
+.rank-prod-info { flex: 1; min-width: 0; }
+.rank-prod-nome {
+  font-size: 12px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+.rank-prod-bar {
+  height: 5px; background: var(--surface2);
+  border-radius: 99px; overflow: hidden;
+}
+.rank-prod-fill {
+  height: 100%; background: var(--green);
+  border-radius: 99px; transition: width .4s;
+}
+.rank-prod-valor {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px; font-weight: 700; color: var(--green);
+  flex-shrink: 0; min-width: 28px; text-align: right;
+}
+
+/* Linha de produto sem giro */
+.semgiro-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.semgiro-row:last-child { border-bottom: none; }
+.semgiro-icon { font-size: 16px; flex-shrink: 0; }
+.semgiro-info { flex: 1; min-width: 0; }
+.semgiro-nome {
+  font-size: 12px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.semgiro-det { font-size: 10px; color: var(--amber); margin-top: 1px; }
