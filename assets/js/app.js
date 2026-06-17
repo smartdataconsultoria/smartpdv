@@ -244,12 +244,9 @@ async function renderEstoque() {
         <div class="sim-conc-label">
           <span class="sim-conc-nome">${s.empresa_concorrente}</span>
           <span class="sim-produto-nome">${s.produto_similar}</span>
+          ${s.sku_concorrente ? `<span class="sim-sku-fixo">${s.sku_concorrente}</span>` : ''}
         </div>
         <div class="est-grid-campos">
-          <div>
-            <label>SKU concorrente</label>
-            <input type="text" class="sim-sku-conc" placeholder="Código do produto">
-          </div>
           <div>
             <label>Preço concorrente (R$)</label>
             <input type="text" class="sim-preco-input" placeholder="0,00" inputmode="decimal"
@@ -502,23 +499,23 @@ async function salvarEstoque() {
   document.querySelectorAll('#lista-est .sim-conc-row').forEach(row => {
     const simId       = row.dataset.simId;
     const precoI      = row.querySelector('.sim-preco-input');
-    const skuConc     = row.querySelector('.sim-sku-conc')?.value?.trim() || '';
     const estoqueConc = parseFloat(row.querySelector('.sim-estoque-conc')?.value) || 0;
     const vendaConc   = parseFloat(row.querySelector('.sim-venda-conc')?.value) || 0;
     const val         = parseFloat(precoI?.value?.replace(',','.')) || 0;
     // salva se tiver pelo menos um campo preenchido
-    if (!val && !estoqueConc && !vendaConc && !skuConc) return;
+    if (!val && !estoqueConc && !vendaConc) return;
     if (!simId) return;
     const estItem = row.closest('.est-item');
     const pid  = estItem?.dataset.id;
     const prod = _produtos.find(p => p.id === pid);
+    const sim  = Object.values(_simsPorProduto).flat().find(x => x.id === simId);
     precosConc.push({
       empresa_id:          _user.empresa_id,
       loja_id:             _lojaId,
       promotor_id:         _user.id,
       produto_id:          pid,
       similar_id:          simId,
-      sku_concorrente:     skuConc,
+      sku_concorrente:     sim?.sku_concorrente || null,
       preco_concorrente:   val,
       preco_proprio:       prod?.preco_sugerido || 0,
       estoque_concorrente: estoqueConc,
