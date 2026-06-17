@@ -525,7 +525,7 @@ async function salvarEstoque() {
   });
 
   try {
-    await supa('estoque_lancamentos', {
+    await supa('estoque_lancamentos?on_conflict=loja_id,produto_id,data', {
       method: 'POST', body: registros, prefer: 'resolution=merge-duplicates'
     });
     if (precosConc.length) {
@@ -661,7 +661,7 @@ async function salvarChecklist() {
     done: c.classList.contains('done')
   }));
   try {
-    await supa('checklists', {
+    await supa('checklists?on_conflict=promotor_id,loja_id,data', {
       method: 'POST',
       body: {
         empresa_id: _user.empresa_id,
@@ -866,7 +866,7 @@ async function salvarDesempenho() {
   const meta = parseFloat(el('fat-meta-input')?.value) || 0;
   const real = parseFloat(el('fat-real-input')?.value) || 0;
   try {
-    await supa('desempenho', {
+    await supa('desempenho?on_conflict=promotor_id,periodo', {
       method: 'POST',
       prefer: 'resolution=merge-duplicates',
       body: {
@@ -1089,7 +1089,7 @@ async function salvarPerfil() {
   try {
     await supa(`promotores?id=eq.${_user.id}`, { method: 'PATCH', body: { nome } });
     if (meta > 0) {
-      await supa('desempenho', {
+      await supa('desempenho?on_conflict=promotor_id,periodo', {
         method: 'POST',
         prefer: 'resolution=merge-duplicates',
         body: { empresa_id: _user.empresa_id, promotor_id: _user.id, periodo: anoMes(), meta, realizado: real }
