@@ -278,7 +278,10 @@ async function renderEstoque() {
     return `
     <div class="est-item" data-id="${p.id}">
       <div class="est-item-header">
-        <div class="est-item-nome">${p.nome}${p.sku ? `<span class="est-sku">${p.sku}</span>` : ''}</div>
+        <div>
+          ${p.fornecedor ? `<div class="est-fornecedor">${p.fornecedor}</div>` : ''}
+          <div class="est-item-nome">${p.sku ? `<span class="est-sku">${p.sku}</span>` : ''}${p.nome}</div>
+        </div>
         <div class="est-item-preco-ref">${p.preco_sugerido ? moeda(p.preco_sugerido) : ''}</div>
       </div>
 
@@ -458,7 +461,10 @@ function itemEstoqueSalvo(e) {
   const ruptura = e.ruptura ? '<span class="est-sku" style="color:var(--red);border-color:#fca5a5;background:var(--red-bg)">Ruptura</span>' : '';
   return `<div class="est-item">
     <div class="est-item-header">
-      <div class="est-item-nome">${prod?.nome || e.nome_produto || e.produto_id}${prod?.sku ? `<span class="est-sku">${prod.sku}</span>` : ''}${ruptura}</div>
+      <div>
+        ${prod?.fornecedor ? `<div class="est-fornecedor">${prod.fornecedor}</div>` : ''}
+        <div class="est-item-nome">${prod?.sku ? `<span class="est-sku">${prod.sku}</span>` : ''}${prod?.nome || e.nome_produto || e.produto_id}${ruptura}</div>
+      </div>
       <div class="est-item-preco-ref">${moeda(e.preco)}</div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;color:var(--text2)">
