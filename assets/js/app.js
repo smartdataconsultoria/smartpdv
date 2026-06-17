@@ -491,7 +491,6 @@ async function salvarEstoque() {
       sistema:        sis,
       fisico:         0,
       qtd_vendida:    vendido,
-      divergencia_pct: 0,
       preco,
       ruptura,
       status: ruptura ? 'critico' : sis === 0 ? 'alerta' : 'ok'
