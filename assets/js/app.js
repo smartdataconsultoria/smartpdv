@@ -144,6 +144,7 @@ function navTo(nome) {
   });
   if (nome === 'home') atualizarHome();
   if (nome === 'estoque') renderEstoque();
+  if (nome === 'checklist') carregarChecklist();
   if (nome === 'concorrentes') renderConcorrentes();
   if (nome === 'avarias') carregarAvarias();
   if (nome === 'config') renderConfig();
@@ -784,6 +785,31 @@ function scrollParaSimilar() {
 }
 
 // ─── CHECKLIST ───────────────────────────────
+async function carregarChecklist() {
+  el('loja-check').textContent = nomeLojaAtual();
+  if (!_lojaId) { atualizarRing(); return; }
+  try {
+    const rows = await supa(
+      `checklists?promotor_id=eq.${_user.id}&loja_id=eq.${_lojaId}&data=eq.${dataHoje()}&select=itens,progresso`
+    );
+    const salvo = rows?.[0];
+    if (salvo?.itens?.length) {
+      // Marca os itens salvos como concluídos, fazendo match pelo texto do label
+      document.querySelectorAll('#sc-checklist .ci').forEach(ci => {
+        const label = ci.querySelector('.ci-label')?.textContent;
+        const itemSalvo = salvo.itens.find(i => i.label === label);
+        ci.classList.toggle('done', !!itemSalvo?.done);
+      });
+    } else {
+      // Nenhum registro hoje: garante que tudo comece desmarcado
+      document.querySelectorAll('#sc-checklist .ci').forEach(ci => ci.classList.remove('done'));
+    }
+  } catch(e) {
+    console.warn('Carregar checklist:', e);
+  }
+  atualizarRing();
+}
+
 function tgl(el) {
   el.classList.toggle('done');
   atualizarRing();
