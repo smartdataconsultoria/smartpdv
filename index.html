@@ -180,22 +180,6 @@
         <div style="font-size:12px;color:var(--text3)">Nenhuma oportunidade.</div>
       </div>
     </div>
-
-    <div class="res-card">
-      <div class="res-card-head" onclick="navTo('pontuacao')">
-        <div class="res-card-title">🏆 Minha pontuação</div>
-        <span class="badge b-neutral">Ver ranking →</span>
-      </div>
-      <div class="res-card-body">
-        <div style="display:flex;align-items:center;gap:12px">
-          <div class="mono" style="font-size:2rem;font-weight:700;color:var(--brand)" id="home-meus-pts">—</div>
-          <div>
-            <div style="font-size:13px;font-weight:600" id="home-nivel-nome">—</div>
-            <div style="font-size:11px;color:var(--text3)" id="home-rank-pos">—</div>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -481,77 +465,6 @@
 </div>
 
 <!-- ═══════════════════════════════════════════
-     PONTUAÇÃO / RANKING
-═══════════════════════════════════════════ -->
-<div id="sc-pontuacao" class="screen">
-  <div class="header">
-    <div style="max-width:var(--max-w);margin:0 auto;width:100%">
-      <div class="header-top">
-        <div class="logo"><span>Smart</span>PDV</div>
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-sm btn-ghost" id="rank-btn-mes" onclick="setRankPeriodo('mes')">Mês</button>
-          <button class="btn btn-sm btn-ghost" id="rank-btn-semana" onclick="setRankPeriodo('semana')">Semana</button>
-        </div>
-      </div>
-      <div class="h-row"><div><div class="h-title">🏆 Ranking</div><div class="h-sub" id="rank-periodo-label">Carregando...</div></div></div>
-    </div>
-  </div>
-  <div class="screen-body">
-    <div class="card" id="minha-pontuacao-card">
-      <div class="ct" style="margin-bottom:8px">Minha pontuação</div>
-      <div style="display:flex;align-items:center;gap:14px">
-        <div class="rank-avatar"><span id="rank-meu-emoji">🥇</span></div>
-        <div style="flex:1">
-          <div class="rank-nome" id="rank-meu-nome">—</div>
-          <div class="mono" style="font-size:1.6rem;font-weight:600;color:var(--brand);line-height:1" id="rank-meus-pts">—</div>
-          <div style="font-size:11px;color:var(--text3)" id="rank-minha-pos">pontos</div>
-        </div>
-        <div class="rank-posicao-box">
-          <div class="mono" style="font-size:1.4rem;font-weight:700;color:var(--brand)" id="rank-minha-posicao">#—</div>
-          <div style="font-size:10px;color:var(--text3)">posição</div>
-        </div>
-      </div>
-      <div style="margin-top:12px">
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:4px">
-          <span id="rank-nivel-atual">Nível —</span>
-          <span id="rank-pts-prox">— pts para o próximo nível</span>
-        </div>
-        <div class="pbar"><div class="pfill" id="rank-xp-bar" style="width:0%"></div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="ct">Conquistas</div>
-      <div id="conquistas-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"></div>
-    </div>
-
-    <div class="card" style="padding:0;overflow:hidden">
-      <div style="padding:12px 14px;border-bottom:1px solid var(--border)">
-        <div class="ct" style="margin:0">Como ganho pontos?</div>
-      </div>
-      <div id="tabela-pontos" style="padding:4px 0"></div>
-    </div>
-
-    <div class="card" style="padding:0;overflow:hidden">
-      <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-        <div class="ct" style="margin:0">Ranking da equipe</div>
-        <button class="btn btn-sm btn-ghost" onclick="carregarRanking()">↻ Atualizar</button>
-      </div>
-      <div id="lista-ranking" style="padding:8px 0">
-        <div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">Carregando ranking...</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="ct">Meu histórico de pontos</div>
-      <div id="historico-pontos">
-        <div style="font-size:12px;color:var(--text3);text-align:center;padding:12px">Nenhum evento registrado.</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════
      CONFIGURAÇÕES
 ═══════════════════════════════════════════ -->
 <div id="sc-config" class="screen">
@@ -648,7 +561,6 @@
   <button class="ni" id="ni-estoque"      onclick="navTo('estoque')">     <span class="ni-icon">📦</span>Estoque</button>
   <button class="ni" id="ni-checklist"    onclick="navTo('checklist')">   <span class="ni-icon">✅</span>Check</button>
   <button class="ni" id="ni-avarias"      onclick="navTo('avarias')">     <span class="ni-icon">⚠️</span>Avarias</button>
-  <button class="ni" id="ni-pontuacao"    onclick="navTo('pontuacao')">   <span class="ni-icon">🏆</span>Ranking</button>
   <button class="ni" id="ni-config"       onclick="navTo('config')">      <span class="ni-icon">⚙️</span>Config</button>
 </nav>
 
