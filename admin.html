@@ -560,7 +560,7 @@ tr:hover td { background: var(--surface2); }
             <div class="form-grid g2" style="margin-bottom:14px">
               <div class="field">
                 <label>Empresa *</label>
-                <select id="prod-empresa"><option value="">Selecione</option></select>
+                <select id="prod-empresa" onchange="popularLojasProdutoCheck(this.value)"><option value="">Selecione</option></select>
               </div>
               <div class="field"><label>Nome do produto *</label><input type="text" id="prod-nome" placeholder="Ex: Produto A — 500ml"></div>
             </div>
@@ -581,6 +581,13 @@ tr:hover td { background: var(--surface2); }
               <div class="field"><label>Preço sugerido (R$)</label><input type="text" id="prod-preco" placeholder="0,00" inputmode="decimal"></div>
               <div class="field"><label>Estoque mínimo</label><input type="number" id="prod-minimo" placeholder="20"></div>
             </div>
+            <div style="margin-bottom:16px">
+              <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px">Vincular a lojas específicas (opcional)</label>
+              <div class="field-hint" style="margin-bottom:8px">Deixe tudo desmarcado para o produto aparecer em <strong>todas</strong> as lojas da empresa. Marque lojas específicas para restringir — útil quando a empresa atende segmentos diferentes (ex: assentos numa loja, pisos em outra).</div>
+              <div id="prod-lojas-check" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px">
+                <div style="font-size:12px;color:var(--text3)">Selecione a empresa primeiro.</div>
+              </div>
+            </div>
             <div style="display:flex;gap:8px">
               <button class="btn btn-primary" id="form-produto-btn" onclick="salvarProduto()">Salvar produto</button>
               <button class="btn btn-ghost" onclick="fecharFormProduto()">Cancelar</button>
@@ -599,7 +606,7 @@ tr:hover td { background: var(--surface2); }
           <div class="card-body" style="padding:0">
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Produto</th><th>Cód. fornecedor</th><th>Cód. empresa</th><th>Fornecedor</th><th>Preço sugerido</th><th>Est. mínimo</th><th>Empresa</th><th>Ações</th></tr></thead>
+                <thead><tr><th>Produto</th><th>Cód. fornecedor</th><th>Cód. empresa</th><th>Fornecedor</th><th>Preço sugerido</th><th>Est. mínimo</th><th>Lojas</th><th>Empresa</th><th>Ações</th></tr></thead>
                 <tbody id="produtos-tbody"></tbody>
               </table>
             </div>
@@ -1322,6 +1329,18 @@ async function deletarLoja(id, nome) {
 }
 
 // ── Produtos ─────────────────────────────────
+function popularLojasProdutoCheck(empId, selecionadas = []) {
+  const container = document.getElementById('prod-lojas-check');
+  if (!container) return;
+  const lojas = _lojas.filter(l => l.empresa_id === empId && l.ativo);
+  if (!lojas.length) { container.innerHTML = '<div style="font-size:12px;color:var(--text3)">Nenhuma loja nesta empresa.</div>'; return; }
+  container.innerHTML = lojas.map(l => `
+    <label style="display:flex;align-items:center;gap:7px;font-size:13px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;cursor:pointer">
+      <input type="checkbox" value="${l.id}" ${selecionadas.includes(l.id) ? 'checked' : ''}> ${l.nome}${l.rede ? ' — ' + l.rede : ''}
+    </label>
+  `).join('');
+}
+
 function editarProduto(id) {
   const p = _produtos.find(x => x.id === id);
   if (!p) return;
@@ -1333,6 +1352,7 @@ function editarProduto(id) {
   document.getElementById('prod-fornecedor').value = p.fornecedor || '';
   document.getElementById('prod-preco').value = p.preco_sugerido ? String(p.preco_sugerido).replace('.',',') : '';
   document.getElementById('prod-minimo').value = p.estoque_minimo || '';
+  popularLojasProdutoCheck(p.empresa_id, p.loja_ids || []);
   document.getElementById('form-produto-titulo').textContent = 'Editar produto';
   document.getElementById('form-produto-btn').textContent = 'Atualizar produto';
   document.getElementById('form-produto').style.display = 'block';
@@ -1342,6 +1362,7 @@ function editarProduto(id) {
 function fecharFormProduto() {
   _editandoId = null;
   limparForm(['prod-nome','prod-sku','prod-codigo-empresa','prod-fornecedor','prod-preco','prod-minimo']);
+  document.getElementById('prod-lojas-check').innerHTML = '<div style="font-size:12px;color:var(--text3)">Selecione a empresa primeiro.</div>';
   document.getElementById('form-produto-titulo').textContent = 'Novo produto';
   document.getElementById('form-produto-btn').textContent = 'Salvar produto';
   toggleForm('form-produto');
@@ -1355,10 +1376,11 @@ async function salvarProduto() {
   const fornec      = document.getElementById('prod-fornecedor').value.trim();
   const preco       = parseFloat(document.getElementById('prod-preco').value?.replace(',','.')) || 0;
   const minimo      = parseInt(document.getElementById('prod-minimo').value) || 0;
+  const lojaIds     = Array.from(document.querySelectorAll('#prod-lojas-check input:checked')).map(i => i.value);
   if (!empresa) { toast('Selecione a empresa', 'red'); return; }
   if (!nome)    { toast('Informe o nome do produto', 'red'); return; }
   try {
-    const corpo = { empresa_id:empresa, nome, sku, codigo_empresa: codigoEmp || null, fornecedor:fornec, preco_sugerido:preco, estoque_minimo:minimo };
+    const corpo = { empresa_id:empresa, nome, sku, codigo_empresa: codigoEmp || null, fornecedor:fornec, preco_sugerido:preco, estoque_minimo:minimo, loja_ids: lojaIds };
     if (_editandoId) {
       await supa(`produtos?id=eq.${_editandoId}`, { method:'PATCH', body: corpo });
       const p = _produtos.find(x => x.id === _editandoId);
@@ -1539,6 +1561,10 @@ function renderProdutos() {
   if (!lista.length) { tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="empty-icon">📦</div>Nenhum produto encontrado.</div></td></tr>`; return; }
   tbody.innerHTML = lista.map(p => {
     const emp = _empresas.find(e => e.id === p.empresa_id);
+    const lojaIds = p.loja_ids || [];
+    const lojasTxt = lojaIds.length
+      ? `<span class="badge b-brand" title="${lojaIds.map(id => _lojas.find(l => l.id === id)?.nome).filter(Boolean).join(', ')}">${lojaIds.length} loja${lojaIds.length !== 1 ? 's' : ''}</span>`
+      : `<span class="badge b-gray">Todas</span>`;
     return `<tr>
       <td><strong>${p.nome}</strong></td>
       <td class="mono" style="font-size:12px">${p.sku || '—'}</td>
@@ -1546,6 +1572,7 @@ function renderProdutos() {
       <td>${p.fornecedor || '—'}</td>
       <td class="mono">${p.preco_sugerido ? 'R$ ' + Number(p.preco_sugerido).toFixed(2).replace('.',',') : '—'}</td>
       <td>${p.estoque_minimo || 0}</td>
+      <td>${lojasTxt}</td>
       <td>${emp?.nome || '—'}</td>
       <td style="display:flex;gap:4px">
         <button class="btn btn-ghost btn-sm" onclick="editarProduto('${p.id}')">✏️</button>
@@ -2316,6 +2343,7 @@ function abrirNovoProduto() {
   _editandoId = null;
   limparForm(['prod-nome','prod-sku','prod-codigo-empresa','prod-fornecedor','prod-preco','prod-minimo']);
   document.getElementById('prod-empresa').value = '';
+  document.getElementById('prod-lojas-check').innerHTML = '<div style="font-size:12px;color:var(--text3)">Selecione a empresa primeiro.</div>';
   document.getElementById('form-produto-titulo').textContent = 'Novo produto';
   document.getElementById('form-produto-btn').textContent = 'Salvar produto';
   toggleForm('form-produto');
