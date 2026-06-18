@@ -306,6 +306,9 @@ tr:hover td { background: var(--surface2); }
       <button class="sb-item" onclick="navAdmin('metas')" id="nav-metas">
         <span class="sb-icon">🎯</span> Metas de venda
       </button>
+      <button class="sb-item" onclick="navAdmin('bonus')" id="nav-bonus">
+        <span class="sb-icon">🎁</span> Bônus por produto
+      </button>
       <div class="sb-section">Sistema</div>
       <button class="sb-item" onclick="navAdmin('acessos')" id="nav-acessos">
         <span class="sb-icon">🔑</span> Acessos
@@ -769,6 +772,82 @@ tr:hover td { background: var(--surface2); }
         </div>
       </div>
 
+      <!-- ── BÔNUS POR PRODUTO ── -->
+      <div id="pg-bonus" style="display:none">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Bônus por produto</div>
+            <div class="page-sub">Campanha mensal: defina a quantidade alvo de um produto específico e o valor do bônus. Vale para todas as lojas do promotor.</div>
+          </div>
+          <button class="btn btn-primary" onclick="toggleForm('form-bonus')">+ Nova campanha</button>
+        </div>
+
+        <div class="card" id="form-bonus" style="display:none">
+          <div class="card-head"><div class="card-title">Nova campanha de bônus</div></div>
+          <div class="card-body">
+            <div class="form-grid g3" style="margin-bottom:14px">
+              <div class="field">
+                <label>Empresa *</label>
+                <select id="bonus-empresa" onchange="atualizarSelectsBonus()"><option value="">Selecione</option></select>
+              </div>
+              <div class="field">
+                <label>Promotor *</label>
+                <select id="bonus-promotor"><option value="">Selecione a empresa primeiro</option></select>
+              </div>
+              <div class="field">
+                <label>Produto *</label>
+                <select id="bonus-produto"><option value="">Selecione a empresa primeiro</option></select>
+              </div>
+            </div>
+            <div class="field" style="margin-bottom:16px;max-width:220px">
+              <label>Mês de referência *</label>
+              <input type="month" id="bonus-periodo">
+            </div>
+
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;margin-bottom:14px">
+              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">🎯 Meta (100%)</div>
+              <div class="form-grid g2">
+                <div class="field"><label>Quantidade meta *</label><input type="number" id="bonus-qtd-meta" placeholder="100" step="0.01" min="0"></div>
+                <div class="field"><label>Valor do bônus (R$) *</label><input type="text" id="bonus-valor-meta" placeholder="0,00" inputmode="decimal"></div>
+              </div>
+            </div>
+
+            <div style="background:var(--brand-bg);border:1px solid var(--brand-mid);border-radius:var(--r-sm);padding:14px;margin-bottom:16px">
+              <div style="font-size:11px;font-weight:700;color:var(--brand);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">🚀 Super Meta (120%) <span style="font-weight:400;text-transform:none">— opcional</span></div>
+              <div class="form-grid g2">
+                <div class="field"><label>Quantidade super meta</label><input type="number" id="bonus-qtd-super" placeholder="120" step="0.01" min="0"></div>
+                <div class="field"><label>Valor do bônus (R$)</label><input type="text" id="bonus-valor-super" placeholder="0,00" inputmode="decimal"></div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary" onclick="criarBonus()">Salvar campanha</button>
+              <button class="btn btn-ghost" onclick="toggleForm('form-bonus')">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center;flex-wrap:wrap">
+          <label style="font-size:13px;font-weight:600;color:var(--text2)">Empresa:</label>
+          <select id="filtro-empresa-bonus" onchange="renderBonus()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--surface);outline:none">
+            <option value="">Todas</option>
+          </select>
+          <label style="font-size:13px;font-weight:600;color:var(--text2);margin-left:8px">Mês:</label>
+          <input type="month" id="filtro-periodo-bonus" onchange="renderBonus()" style="padding:6px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--surface);outline:none">
+        </div>
+
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Promotor</th><th>Produto</th><th>Mês</th><th>Meta / Super</th><th>Qtd. atual</th><th>% atingido</th><th>Bônus ganho</th><th>Status</th><th>Ações</th></tr></thead>
+                <tbody id="bonus-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── ACESSOS ── -->
       <div id="pg-acessos" style="display:none">
         <div class="page-header">
@@ -814,6 +893,7 @@ let _lojas_prom = []; // vínculos loja <-> promotor
 let _similares  = []; // similares de concorrentes
 let _metas      = []; // metas mensais de venda por promotor/loja
 let _projecoes  = []; // projeção calculada a partir do estoque (vw_projecao_vendas)
+let _bonusCampanhas = []; // campanhas de bônus por produto
 
 // ── Supabase helper ──────────────────────────
 async function supa(path, opts = {}) {
@@ -867,26 +947,27 @@ function logoutAdmin() {
 }
 
 // ── Navegação ────────────────────────────────
-const PAGES = ['dashboard','empresas','promotores','lojas','produtos','similares','metas','acessos'];
+const PAGES = ['dashboard','empresas','promotores','lojas','produtos','similares','metas','bonus','acessos'];
 function navAdmin(pg) {
   PAGES.forEach(p => {
     document.getElementById('pg-' + p).style.display = p === pg ? 'block' : 'none';
     document.getElementById('nav-' + p)?.classList.toggle('active', p === pg);
   });
-  const titles = { dashboard:'Dashboard', empresas:'Empresas', promotores:'Promotores', lojas:'Lojas / PDVs', produtos:'Produtos', similares:'Similares', metas:'Metas de venda', acessos:'Acessos' };
+  const titles = { dashboard:'Dashboard', empresas:'Empresas', promotores:'Promotores', lojas:'Lojas / PDVs', produtos:'Produtos', similares:'Similares', metas:'Metas de venda', bonus:'Bônus por produto', acessos:'Acessos' };
   document.getElementById('topbar-title').textContent = titles[pg] || pg;
   if (pg === 'promotores') renderPromotores();
   if (pg === 'lojas')      renderLojas();
   if (pg === 'produtos')   renderProdutos();
   if (pg === 'similares')  renderSimilares();
   if (pg === 'metas')      renderMetas();
+  if (pg === 'bonus')      renderBonus();
   if (pg === 'acessos')    renderAcessos();
 }
 
 // ── Carregar todos os dados ──────────────────
 async function recarregarTudo() {
   try {
-    [_empresas, _promotores, _lojas, _produtos, _lojas_prom, _similares, _metas, _projecoes] = await Promise.all([
+    [_empresas, _promotores, _lojas, _produtos, _lojas_prom, _similares, _metas, _projecoes, _bonusCampanhas] = await Promise.all([
       supa('empresas?order=nome&select=*'),
       supa('promotores?order=nome&select=*'),
       supa('lojas?order=nome&select=*'),
@@ -894,7 +975,8 @@ async function recarregarTudo() {
       supa('lojas_promotor?select=*'),
       supa('similares_concorrentes?order=created_at.desc&select=*'),
       supa('desempenho?order=periodo.desc&select=*'),
-      supa('vw_projecao_vendas?select=*').catch(() => [])
+      supa('vw_projecao_vendas?select=*').catch(() => []),
+      supa('vw_bonus_completo?order=periodo.desc&select=*').catch(() => [])
     ]);
     atualizarFiltros();
     renderDashboard();
@@ -904,8 +986,8 @@ async function recarregarTudo() {
 
 function atualizarFiltros() {
   const opts = '<option value="">Todas</option>' + _empresas.map(e => `<option value="${e.id}">${e.nome}</option>`).join('');
-  ['filtro-empresa-prom','filtro-empresa-loja','filtro-empresa-prod','filtro-empresa-sim','filtro-empresa-meta',
-   'prom-empresa','loja-empresa','prod-empresa','sim-empresa','meta-empresa'].forEach(id => {
+  ['filtro-empresa-prom','filtro-empresa-loja','filtro-empresa-prod','filtro-empresa-sim','filtro-empresa-meta','filtro-empresa-bonus',
+   'prom-empresa','loja-empresa','prod-empresa','sim-empresa','meta-empresa','bonus-empresa'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = id.startsWith('filtro') ? opts : opts.replace('Todas','Selecione');
   });
@@ -1771,6 +1853,132 @@ async function deletarMeta(metaId) {
     _metas = _metas.filter(m => m.id !== metaId);
     renderMetas();
     toast('Meta removida');
+  } catch(e) { toast('Erro: ' + e.message, 'red'); }
+}
+
+// ── Bônus por produto ───────────────────────────
+
+function atualizarSelectsBonus() {
+  const empId = document.getElementById('bonus-empresa').value;
+  const proms = _promotores.filter(p => p.empresa_id === empId && p.ativo);
+  const prods = _produtos.filter(p => p.empresa_id === empId);
+
+  const selProm = document.getElementById('bonus-promotor');
+  selProm.innerHTML = proms.length
+    ? '<option value="">Selecione</option>' + proms.map(p => `<option value="${p.id}">${p.nome}</option>`).join('')
+    : '<option value="">Nenhum promotor nesta empresa</option>';
+
+  const selProd = document.getElementById('bonus-produto');
+  selProd.innerHTML = prods.length
+    ? '<option value="">Selecione</option>' + prods.map(p => `<option value="${p.id}">${p.nome}${p.sku ? ' — '+p.sku : ''}</option>`).join('')
+    : '<option value="">Nenhum produto nesta empresa</option>';
+}
+
+async function criarBonus() {
+  const empId      = document.getElementById('bonus-empresa').value;
+  const promId     = document.getElementById('bonus-promotor').value;
+  const prodId     = document.getElementById('bonus-produto').value;
+  const periodo    = document.getElementById('bonus-periodo').value;
+  const qtdMeta    = parseFloat(document.getElementById('bonus-qtd-meta').value) || 0;
+  const valorMeta  = parseFloat(document.getElementById('bonus-valor-meta').value?.replace(',','.')) || 0;
+  const qtdSuper   = parseFloat(document.getElementById('bonus-qtd-super').value) || null;
+  const valorSuper = parseFloat(document.getElementById('bonus-valor-super').value?.replace(',','.')) || 0;
+
+  if (!empId)    { toast('Selecione a empresa', 'red'); return; }
+  if (!promId)   { toast('Selecione o promotor', 'red'); return; }
+  if (!prodId)   { toast('Selecione o produto', 'red'); return; }
+  if (!periodo)  { toast('Selecione o mês de referência', 'red'); return; }
+  if (!qtdMeta)  { toast('Informe a quantidade meta', 'red'); return; }
+  if (!valorMeta){ toast('Informe o valor do bônus da meta', 'red'); return; }
+
+  try {
+    const result = await supa('bonus_campanhas?on_conflict=promotor_id,produto_id,periodo', {
+      method: 'POST',
+      prefer: 'resolution=merge-duplicates,return=representation',
+      body: {
+        empresa_id: empId, promotor_id: promId, produto_id: prodId, periodo,
+        qtd_meta: qtdMeta, valor_bonus_meta: valorMeta,
+        qtd_super_meta: qtdSuper, valor_bonus_super: valorSuper,
+        status: 'aberta'
+      }
+    });
+    toggleForm('form-bonus');
+    limparForm(['bonus-qtd-meta','bonus-valor-meta','bonus-qtd-super','bonus-valor-super']);
+    toast('Campanha de bônus criada! ✓', 'green');
+    await recarregarTudo(); // recarrega para puxar a view atualizada com promotor_nome/produto_nome
+    navAdmin('bonus');
+  } catch(e) { toast('Erro: ' + e.message, 'red'); }
+}
+
+function renderBonus() {
+  const filtroEmp = document.getElementById('filtro-empresa-bonus')?.value;
+  const filtroPer = document.getElementById('filtro-periodo-bonus')?.value;
+  let lista = [..._bonusCampanhas];
+  if (filtroEmp) lista = lista.filter(b => b.empresa_id === filtroEmp);
+  if (filtroPer) lista = lista.filter(b => b.periodo === filtroPer);
+
+  const tbody = document.getElementById('bonus-tbody');
+  if (!lista.length) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty"><div class="empty-icon">🎁</div>Nenhuma campanha de bônus cadastrada.</div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = lista.map(b => {
+    const pct = Number(b.percentual_atingido) || 0;
+    const pctCls = pct >= 120 ? 'b-green' : pct >= 100 ? 'b-brand' : pct >= 70 ? 'b-amber' : 'b-red';
+    const statusBadge = b.status === 'fechada'
+      ? '<span class="badge b-brand">✓ Fechada</span>'
+      : '<span class="badge b-gray">📊 Em aberto</span>';
+    const metaSuper = b.qtd_super_meta
+      ? `${b.qtd_meta} / ${b.qtd_super_meta}`
+      : `${b.qtd_meta}`;
+    const bonusGanho = Number(b.valor_bonus_atual) || 0;
+
+    return `<tr>
+      <td><strong>${b.promotor_nome || '—'}</strong></td>
+      <td>${b.produto_nome || '—'}</td>
+      <td class="mono" style="font-size:12px">${b.periodo}</td>
+      <td class="mono" style="font-size:12px">${metaSuper}</td>
+      <td class="mono">${Number(b.qtd_atual).toFixed(0)}</td>
+      <td><span class="badge ${pctCls}">${pct.toFixed(0)}%</span></td>
+      <td class="mono" style="font-weight:700;color:${bonusGanho > 0 ? 'var(--green)' : 'var(--text3)'}">${bonusGanho > 0 ? 'R$ ' + bonusGanho.toFixed(2).replace('.',',') : '—'}</td>
+      <td>${statusBadge}</td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm" onclick="abrirFecharBonus('${b.id}')">${b.status === 'fechada' ? 'Editar' : 'Fechar mês'}</button>
+        <button class="btn btn-danger btn-sm" onclick="deletarBonus('${b.id}')">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function abrirFecharBonus(bonusId) {
+  const b = _bonusCampanhas.find(x => x.id === bonusId);
+  if (!b) return;
+  const valor = prompt(`Fechar campanha de ${b.promotor_nome} — ${b.produto_nome} (${b.periodo})\n\nDigite a quantidade oficial vendida no mês:`, b.qtd_oficial || b.qtd_atual || '');
+  if (valor === null) return;
+  const qtdNum = parseFloat(valor.replace(',','.')) || 0;
+  fecharBonusOficial(bonusId, qtdNum);
+}
+
+async function fecharBonusOficial(bonusId, qtd) {
+  try {
+    await supa(`bonus_campanhas?id=eq.${bonusId}`, {
+      method: 'PATCH',
+      body: { qtd_oficial: qtd, status: 'fechada' }
+    });
+    toast('Quantidade oficial registrada! ✓', 'green');
+    await recarregarTudo();
+    navAdmin('bonus');
+  } catch(e) { toast('Erro: ' + e.message, 'red'); }
+}
+
+async function deletarBonus(bonusId) {
+  if (!confirm('Remover esta campanha de bônus?')) return;
+  try {
+    await supa(`bonus_campanhas?id=eq.${bonusId}`, { method: 'DELETE' });
+    _bonusCampanhas = _bonusCampanhas.filter(b => b.id !== bonusId);
+    renderBonus();
+    toast('Campanha removida');
   } catch(e) { toast('Erro: ' + e.message, 'red'); }
 }
 
