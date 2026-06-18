@@ -828,8 +828,22 @@ async function supa(path, opts = {}) {
     method: opts.method || 'GET',
     body: opts.body ? JSON.stringify(opts.body) : undefined
   });
-  if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.message || `HTTP ${r.status}`); }
-  return r.status === 204 ? null : r.json();
+
+  // Lê o corpo como texto primeiro — evita erro de "Unexpected end of JSON input"
+  const raw = await r.text();
+  let data = null;
+  if (raw) {
+    try { data = JSON.parse(raw); }
+    catch(e) { data = raw; } // corpo não-JSON (ex: mensagem de erro em texto puro)
+  }
+
+  if (!r.ok) {
+    const msg = (data && typeof data === 'object' && data.message) ? data.message
+              : (typeof data === 'string' && data) ? data
+              : `HTTP ${r.status}`;
+    throw new Error(msg);
+  }
+  return data;
 }
 
 // ── Login admin ──────────────────────────────
@@ -1665,14 +1679,16 @@ async function criarMeta() {
   if (!valor)   { toast('Informe o valor da meta', 'red'); return; }
 
   try {
-    const [meta] = await supa('desempenho?on_conflict=promotor_id,loja_id,periodo', {
+    const result = await supa('desempenho?on_conflict=promotor_id,loja_id,periodo', {
       method: 'POST',
-      prefer: 'resolution=merge-duplicates',
+      prefer: 'resolution=merge-duplicates,return=representation',
       body: {
         empresa_id: empId, promotor_id: promId, loja_id: lojaId,
         periodo, meta: valor, realizado: 0, tipo_realizado: 'projecao'
       }
     });
+    const meta = Array.isArray(result) ? result[0] : result;
+    if (!meta) throw new Error('Meta salva, mas o servidor não retornou os dados. Atualize a página.');
     // Remove duplicata antiga se existir e adiciona a nova
     _metas = _metas.filter(m => !(m.promotor_id === promId && m.loja_id === lojaId && m.periodo === periodo));
     _metas.push(meta);
