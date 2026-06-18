@@ -396,20 +396,6 @@ input, select, textarea, button { font-family: inherit; }
 .foto-area:active { border-color: var(--brand); }
 .foto-placeholder { font-size: 13px; color: var(--text3); }
 
-/* ── Ranking ── */
-.rank-avatar {
-  width: 64px; height: 64px; border-radius: 50%;
-  background: var(--brand-bg); border: 3px solid var(--brand);
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  font-size: 22px;
-}
-.rank-nome { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; }
-.rank-posicao-box {
-  text-align: center; background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 10px 14px;
-}
-
 /* ── Nav ── */
 .nav {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
@@ -558,42 +544,6 @@ input, select, textarea, button { font-family: inherit; }
 .loja-option:last-child { border-bottom: none; }
 .loja-option:active { background: var(--surface2); }
 .loja-option.selected { color: var(--brand); background: var(--brand-bg); }
-
-/* ── Tabela de pontos ── */
-.pontos-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 9px 14px;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-}
-.pontos-row:last-child { border-bottom: none; }
-.pontos-val { font-family: 'DM Mono', monospace; font-weight: 600; color: var(--brand); }
-
-/* ── Ranking item ── */
-.rank-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 14px;
-  border-bottom: 1px solid var(--border);
-}
-.rank-item:last-child { border-bottom: none; }
-.rank-pos-num { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 700; color: var(--text3); min-width: 28px; text-align: center; }
-.rank-pos-num.top1 { color: #F59E0B; }
-.rank-pos-num.top2 { color: #6B7280; }
-.rank-pos-num.top3 { color: #92400E; }
-.rank-nome-item { flex: 1; font-size: 13px; font-weight: 500; }
-.rank-pts-item { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600; color: var(--brand); }
-
-/* ── Conquistas ── */
-.conquista {
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  padding: 8px 4px;
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); text-align: center;
-}
-.conquista.desbloqueada { background: var(--brand-bg); border-color: var(--brand-light); }
-.conquista .icone { font-size: 22px; }
-.conquista .nome { font-size: 9px; color: var(--text3); font-weight: 600; line-height: 1.2; }
-.conquista.desbloqueada .nome { color: var(--brand); }
 
 /* ── Utilitários ── */
 .hidden { display: none !important; }
