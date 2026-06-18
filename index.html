@@ -91,6 +91,17 @@
       </div>
     </div>
 
+    <!-- Bônus por produto — acesso à tela de Bônus -->
+    <div class="res-card" id="home-bonus-card" onclick="navTo('bonus')" style="display:none">
+      <div class="res-card-head">
+        <div class="res-card-title">🎁 Bônus por produto</div>
+        <span class="badge b-neutral">Ver →</span>
+      </div>
+      <div class="res-card-body" id="home-bonus-resumo">
+        <div style="font-size:12px;color:var(--text3)">Carregando...</div>
+      </div>
+    </div>
+
     <!-- Resumo rápido do dia -->
     <div class="card" style="padding:0;overflow:hidden">
       <div style="padding:10px 14px">
@@ -406,6 +417,26 @@
 
     <div class="ibox ibox-blue">
       💡 Este número é calculado automaticamente a partir da <strong>quantidade vendida</strong> que você lança na tela de Estoque. Não precisa preencher nada aqui.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     BÔNUS POR PRODUTO
+═══════════════════════════════════════════ -->
+<div id="sc-bonus" class="screen">
+  <div class="header">
+    <div style="max-width:var(--max-w);margin:0 auto;width:100%">
+      <div class="header-top"><div class="logo"><span>Smart</span>PDV</div></div>
+      <div class="h-row"><div><div class="h-title">🎁 Bônus por produto</div><div class="h-sub">Campanhas do mês</div></div></div>
+    </div>
+  </div>
+  <div class="screen-body">
+    <div class="ibox ibox-blue">
+      💡 Some tudo que você vender deste produto, em <strong>qualquer loja</strong> que você atende. O bônus é calculado automaticamente.
+    </div>
+    <div id="lista-bonus">
+      <div style="font-size:12px;color:var(--text3);text-align:center;padding:16px">Carregando...</div>
     </div>
   </div>
 </div>
