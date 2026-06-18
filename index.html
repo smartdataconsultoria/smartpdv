@@ -80,6 +80,17 @@
   </div>
 
   <div class="screen-body">
+    <!-- Meta do mês — acesso à tela de Desempenho -->
+    <div class="res-card" id="home-meta-card" onclick="navTo('desempenho')">
+      <div class="res-card-head">
+        <div class="res-card-title">🎯 Meta do mês</div>
+        <span class="badge b-neutral">Ver →</span>
+      </div>
+      <div class="res-card-body" id="home-meta-resumo">
+        <div style="font-size:12px;color:var(--text3)">Carregando...</div>
+      </div>
+    </div>
+
     <!-- Resumo rápido do dia -->
     <div class="card" style="padding:0;overflow:hidden">
       <div style="padding:10px 14px">
@@ -348,24 +359,53 @@
     </div>
   </div>
   <div class="screen-body">
-    <div class="card">
-      <div class="ct">Resumo do mês</div>
-      <div class="metrics m2">
-        <div class="metric"><div class="metric-n brand" id="desemp-pct">—</div><div class="metric-l">% da meta</div></div>
-        <div class="metric"><div class="metric-n green" id="desemp-proj-fim">R$ —</div><div class="metric-l">Projeção fim do mês</div></div>
+
+    <!-- Sem meta cadastrada -->
+    <div class="card hidden" id="desemp-sem-meta">
+      <div class="ibox ibox-amber" style="margin:0">
+        Nenhuma meta cadastrada para esta loja neste mês. Fale com seu gestor para definir a meta mensal.
+      </div>
+      <div style="margin-top:12px">
+        <div class="ct" style="margin-bottom:4px">Projeção atual (baseada no que você lançou)</div>
+        <div class="metric-n green" id="desemp-proj-fim" style="font-size:1.4rem">R$ —</div>
       </div>
     </div>
-    <div class="card">
-      <div class="ct">Atualizar resultado</div>
-      <div class="metrics m2" style="margin-bottom:12px">
-        <div class="field" style="margin:0"><label>Meta do mês (R$)</label><input type="number" id="fat-meta-input" placeholder="0" inputmode="decimal" oninput="calcMeta()"></div>
-        <div class="field" style="margin:0"><label>Realizado até hoje (R$)</label><input type="number" id="fat-real-input" placeholder="0" inputmode="decimal" oninput="calcMeta()"></div>
+
+    <!-- Com meta cadastrada -->
+    <div id="desemp-com-meta" class="hidden">
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:14px 14px 10px;border-bottom:1px solid var(--border)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div class="ct" style="margin:0">Meta do mês</div>
+            <div id="desemp-status-badge"></div>
+          </div>
+          <div class="metrics m2" style="margin-bottom:10px">
+            <div class="metric"><div class="metric-label">Meta</div><div class="metric-n" id="desemp-meta-val">R$ —</div></div>
+            <div class="metric"><div class="metric-label">Realizado</div><div class="metric-n green" id="desemp-real-val">R$ —</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <div class="pbar" style="flex:1;margin:0"><div class="pfill" id="desemp-bar" style="width:0%"></div></div>
+            <span class="mono pct-label" id="desemp-pct">0%</span>
+          </div>
+          <div class="meta-detail-box">
+            <div><div class="meta-detail-label">Precisa vender/dia</div><div class="mono" style="font-size:16px;font-weight:700;color:var(--brand)" id="desemp-dia">R$ —</div></div>
+            <div style="text-align:right"><div class="meta-detail-label">Falta para meta</div><div class="mono" style="font-size:13px;font-weight:600;color:var(--red)" id="desemp-falta">R$ —</div></div>
+          </div>
+        </div>
+        <div style="padding:10px 14px;text-align:center">
+          <span style="font-size:11px;color:var(--text3)" id="desemp-dias-restantes">—</span>
+        </div>
       </div>
-      <button class="btn btn-p" onclick="salvarDesempenho()">Salvar desempenho</button>
+
+      <div class="card">
+        <div class="ct">Projeção de fim do mês</div>
+        <div class="metric-n green" style="font-size:1.6rem" id="desemp-proj-fim-card">R$ —</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">Calculada com base no ritmo de vendas lançado até agora.</div>
+      </div>
     </div>
-    <div class="card">
-      <div class="ct">Histórico</div>
-      <div id="desemp-historico"><div style="font-size:12px;color:var(--text3);text-align:center;padding:12px">Nenhum registro.</div></div>
+
+    <div class="ibox ibox-blue">
+      💡 Este número é calculado automaticamente a partir da <strong>quantidade vendida</strong> que você lança na tela de Estoque. Não precisa preencher nada aqui.
     </div>
   </div>
 </div>
