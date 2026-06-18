@@ -365,11 +365,11 @@ tr:hover td { background: var(--surface2); }
       <div id="pg-empresas" style="display:none">
         <div class="page-header">
           <div><div class="page-title">Empresas</div><div class="page-sub">Clientes da consultoria</div></div>
-          <button class="btn btn-primary" onclick="toggleForm('form-empresa')">+ Nova empresa</button>
+          <button class="btn btn-primary" onclick="abrirNovaEmpresa()">+ Nova empresa</button>
         </div>
 
         <div class="card" id="form-empresa" style="display:none">
-          <div class="card-head"><div class="card-title">Nova empresa</div></div>
+          <div class="card-head"><div class="card-title" id="form-empresa-titulo">Nova empresa</div></div>
           <div class="card-body">
             <div class="form-grid g2" style="margin-bottom:14px">
               <div class="field"><label>Nome da empresa *</label><input type="text" id="emp-nome" placeholder="Ex: Distribuidora Fred"></div>
@@ -380,8 +380,8 @@ tr:hover td { background: var(--surface2); }
               <div class="field"><label>E-mail</label><input type="text" id="emp-email" placeholder="email@empresa.com"></div>
             </div>
             <div style="display:flex;gap:8px">
-              <button class="btn btn-primary" onclick="criarEmpresa()">Salvar empresa</button>
-              <button class="btn btn-ghost" onclick="toggleForm('form-empresa')">Cancelar</button>
+              <button class="btn btn-primary" id="form-empresa-btn" onclick="salvarEmpresa()">Salvar empresa</button>
+              <button class="btn btn-ghost" onclick="fecharFormEmpresa()">Cancelar</button>
             </div>
           </div>
         </div>
@@ -402,11 +402,11 @@ tr:hover td { background: var(--surface2); }
       <div id="pg-promotores" style="display:none">
         <div class="page-header">
           <div><div class="page-title">Promotores</div><div class="page-sub">Usuários de campo com acesso ao app</div></div>
-          <button class="btn btn-primary" onclick="toggleForm('form-promotor')">+ Novo promotor</button>
+          <button class="btn btn-primary" onclick="abrirNovoPromotor()">+ Novo promotor</button>
         </div>
 
         <div class="card" id="form-promotor" style="display:none">
-          <div class="card-head"><div class="card-title">Novo promotor</div></div>
+          <div class="card-head"><div class="card-title" id="form-promotor-titulo">Novo promotor</div></div>
           <div class="card-body">
             <div class="form-grid g3" style="margin-bottom:14px">
               <div class="field">
@@ -439,8 +439,8 @@ tr:hover td { background: var(--surface2); }
               </div>
             </div>
             <div style="display:flex;gap:8px">
-              <button class="btn btn-primary" onclick="criarPromotor()">Salvar promotor</button>
-              <button class="btn btn-ghost" onclick="toggleForm('form-promotor')">Cancelar</button>
+              <button class="btn btn-primary" id="form-promotor-btn" onclick="salvarPromotor()">Salvar promotor</button>
+              <button class="btn btn-ghost" onclick="fecharFormPromotor()">Cancelar</button>
             </div>
           </div>
         </div>
@@ -469,11 +469,11 @@ tr:hover td { background: var(--surface2); }
       <div id="pg-lojas" style="display:none">
         <div class="page-header">
           <div><div class="page-title">Lojas / PDVs</div><div class="page-sub">Pontos de venda por empresa</div></div>
-          <button class="btn btn-primary" onclick="toggleForm('form-loja')">+ Nova loja</button>
+          <button class="btn btn-primary" onclick="abrirNovaLoja()">+ Nova loja</button>
         </div>
 
         <div class="card" id="form-loja" style="display:none">
-          <div class="card-head"><div class="card-title">Nova loja</div></div>
+          <div class="card-head"><div class="card-title" id="form-loja-titulo">Nova loja</div></div>
           <div class="card-body">
             <div class="form-grid g2" style="margin-bottom:14px">
               <div class="field">
@@ -494,8 +494,8 @@ tr:hover td { background: var(--surface2); }
               </div>
             </div>
             <div style="display:flex;gap:8px">
-              <button class="btn btn-primary" onclick="criarLoja()">Salvar loja</button>
-              <button class="btn btn-ghost" onclick="toggleForm('form-loja')">Cancelar</button>
+              <button class="btn btn-primary" id="form-loja-btn" onclick="salvarLoja()">Salvar loja</button>
+              <button class="btn btn-ghost" onclick="fecharFormLoja()">Cancelar</button>
             </div>
           </div>
         </div>
@@ -527,7 +527,7 @@ tr:hover td { background: var(--surface2); }
             <button class="btn btn-ghost" onclick="baixarTemplate()">⬇ Baixar modelo Excel</button>
             <button class="btn btn-ghost" onclick="document.getElementById('input-xlsx').click()">⬆ Importar Excel</button>
             <button class="btn btn-ghost" onclick="exportarProdutosXlsx()">📊 Exportar Excel</button>
-            <button class="btn btn-primary" onclick="toggleForm('form-produto')">+ Novo produto</button>
+            <button class="btn btn-primary" onclick="abrirNovoProduto()">+ Novo produto</button>
             <input type="file" id="input-xlsx" accept=".xlsx,.xls" style="display:none" onchange="importarProdutosXlsx(this)">
           </div>
         </div>
@@ -555,7 +555,7 @@ tr:hover td { background: var(--surface2); }
         </div>
 
         <div class="card" id="form-produto" style="display:none">
-          <div class="card-head"><div class="card-title">Novo produto</div></div>
+          <div class="card-head"><div class="card-title" id="form-produto-titulo">Novo produto</div></div>
           <div class="card-body">
             <div class="form-grid g2" style="margin-bottom:14px">
               <div class="field">
@@ -582,8 +582,8 @@ tr:hover td { background: var(--surface2); }
               <div class="field"><label>Estoque mínimo</label><input type="number" id="prod-minimo" placeholder="20"></div>
             </div>
             <div style="display:flex;gap:8px">
-              <button class="btn btn-primary" onclick="criarProduto()">Salvar produto</button>
-              <button class="btn btn-ghost" onclick="toggleForm('form-produto')">Cancelar</button>
+              <button class="btn btn-primary" id="form-produto-btn" onclick="salvarProduto()">Salvar produto</button>
+              <button class="btn btn-ghost" onclick="fecharFormProduto()">Cancelar</button>
             </div>
           </div>
         </div>
@@ -618,7 +618,7 @@ tr:hover td { background: var(--surface2); }
             <button class="btn btn-ghost" onclick="baixarTemplateSimilares()">⬇ Baixar modelo Excel</button>
             <button class="btn btn-ghost" onclick="document.getElementById('input-xlsx-sim').click()">⬆ Importar Excel</button>
             <button class="btn btn-ghost" onclick="exportarSimilaresXlsx()">📊 Exportar Excel</button>
-            <button class="btn btn-primary" onclick="toggleForm('form-similar')">+ Novo similar</button>
+            <button class="btn btn-primary" onclick="abrirNovoSimilar()">+ Novo similar</button>
             <input type="file" id="input-xlsx-sim" accept=".xlsx,.xls" style="display:none" onchange="importarSimilaresXlsx(this)">
           </div>
         </div>
@@ -647,7 +647,7 @@ tr:hover td { background: var(--surface2); }
 
         <!-- Formulário -->
         <div class="card" id="form-similar" style="display:none">
-          <div class="card-head"><div class="card-title">Novo vínculo de similar</div></div>
+          <div class="card-head"><div class="card-title" id="form-similar-titulo">Novo vínculo de similar</div></div>
           <div class="card-body">
             <div class="form-grid g2" style="margin-bottom:14px">
               <div class="field">
@@ -685,8 +685,8 @@ tr:hover td { background: var(--surface2); }
               </div>
             </div>
             <div style="display:flex;gap:8px">
-              <button class="btn btn-primary" onclick="criarSimilar()">Salvar similar</button>
-              <button class="btn btn-ghost" onclick="toggleForm('form-similar')">Cancelar</button>
+              <button class="btn btn-primary" id="form-similar-btn" onclick="salvarSimilar()">Salvar similar</button>
+              <button class="btn btn-ghost" onclick="fecharFormSimilar()">Cancelar</button>
             </div>
           </div>
         </div>
@@ -714,11 +714,11 @@ tr:hover td { background: var(--surface2); }
             <div class="page-title">Metas de venda</div>
             <div class="page-sub">Defina a meta mensal de cada promotor por loja. A projeção é calculada automaticamente a partir do estoque lançado.</div>
           </div>
-          <button class="btn btn-primary" onclick="toggleForm('form-meta')">+ Nova meta</button>
+          <button class="btn btn-primary" onclick="abrirNovaMeta()">+ Nova meta</button>
         </div>
 
         <div class="card" id="form-meta" style="display:none">
-          <div class="card-head"><div class="card-title">Definir meta mensal</div></div>
+          <div class="card-head"><div class="card-title" id="form-meta-titulo">Definir meta mensal</div></div>
           <div class="card-body">
             <div class="form-grid g3" style="margin-bottom:14px">
               <div class="field">
@@ -745,8 +745,8 @@ tr:hover td { background: var(--surface2); }
               </div>
             </div>
             <div style="display:flex;gap:8px">
-              <button class="btn btn-primary" onclick="criarMeta()">Salvar meta</button>
-              <button class="btn btn-ghost" onclick="toggleForm('form-meta')">Cancelar</button>
+              <button class="btn btn-primary" id="form-meta-btn" onclick="salvarMeta()">Salvar meta</button>
+              <button class="btn btn-ghost" onclick="fecharFormMeta()">Cancelar</button>
             </div>
           </div>
         </div>
@@ -779,11 +779,11 @@ tr:hover td { background: var(--surface2); }
             <div class="page-title">Bônus por produto</div>
             <div class="page-sub">Campanha mensal: defina a quantidade alvo de um produto específico e o valor do bônus. Vale para todas as lojas do promotor.</div>
           </div>
-          <button class="btn btn-primary" onclick="toggleForm('form-bonus')">+ Nova campanha</button>
+          <button class="btn btn-primary" onclick="abrirNovaBonus()">+ Nova campanha</button>
         </div>
 
         <div class="card" id="form-bonus" style="display:none">
-          <div class="card-head"><div class="card-title">Nova campanha de bônus</div></div>
+          <div class="card-head"><div class="card-title" id="form-bonus-titulo">Nova campanha de bônus</div></div>
           <div class="card-body">
             <div class="form-grid g3" style="margin-bottom:14px">
               <div class="field">
@@ -821,8 +821,8 @@ tr:hover td { background: var(--surface2); }
             </div>
 
             <div style="display:flex;gap:8px">
-              <button class="btn btn-primary" onclick="criarBonus()">Salvar campanha</button>
-              <button class="btn btn-ghost" onclick="toggleForm('form-bonus')">Cancelar</button>
+              <button class="btn btn-primary" id="form-bonus-btn" onclick="salvarBonus()">Salvar campanha</button>
+              <button class="btn btn-ghost" onclick="fecharFormBonus()">Cancelar</button>
             </div>
           </div>
         </div>
@@ -891,6 +891,7 @@ let _lojas      = [];
 let _produtos   = [];
 let _lojas_prom = []; // vínculos loja <-> promotor
 let _similares  = []; // similares de concorrentes
+let _editandoId = null; // id do registro em edição (null = modo criação)
 let _metas      = []; // metas mensais de venda por promotor/loja
 let _projecoes  = []; // projeção calculada a partir do estoque (vw_projecao_vendas)
 let _bonusCampanhas = []; // campanhas de bônus por produto
@@ -1019,21 +1020,50 @@ function renderDashboard() {
 }
 
 // ── Empresas ─────────────────────────────────
-async function criarEmpresa() {
+// ── Empresas ─────────────────────────────────
+function editarEmpresa(id) {
+  const emp = _empresas.find(e => e.id === id);
+  if (!emp) return;
+  _editandoId = id;
+  document.getElementById('emp-nome').value = emp.nome || '';
+  document.getElementById('emp-cnpj').value = emp.cnpj || '';
+  document.getElementById('emp-contato').value = emp.contato || '';
+  document.getElementById('emp-email').value = emp.email || '';
+  document.getElementById('form-empresa-titulo').textContent = 'Editar empresa';
+  document.getElementById('form-empresa-btn').textContent = 'Atualizar empresa';
+  document.getElementById('form-empresa').style.display = 'block';
+  document.getElementById('form-empresa').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function fecharFormEmpresa() {
+  _editandoId = null;
+  limparForm(['emp-nome','emp-cnpj','emp-contato','emp-email']);
+  document.getElementById('form-empresa-titulo').textContent = 'Nova empresa';
+  document.getElementById('form-empresa-btn').textContent = 'Salvar empresa';
+  toggleForm('form-empresa');
+}
+
+async function salvarEmpresa() {
   const nome    = document.getElementById('emp-nome').value.trim();
   const cnpj    = document.getElementById('emp-cnpj').value.trim();
   const contato = document.getElementById('emp-contato').value.trim();
   const email   = document.getElementById('emp-email').value.trim();
   if (!nome) { toast('Informe o nome da empresa', 'red'); return; }
   try {
-    const [emp] = await supa('empresas', { method:'POST', body:{ nome, cnpj, contato, email, ativo:true } });
-    _empresas.push(emp);
+    if (_editandoId) {
+      await supa(`empresas?id=eq.${_editandoId}`, { method:'PATCH', body:{ nome, cnpj, contato, email } });
+      const emp = _empresas.find(e => e.id === _editandoId);
+      if (emp) Object.assign(emp, { nome, cnpj, contato, email });
+      toast('Empresa atualizada! ✓', 'green');
+    } else {
+      const [emp] = await supa('empresas', { method:'POST', body:{ nome, cnpj, contato, email, ativo:true } });
+      _empresas.push(emp);
+      toast('Empresa criada com sucesso! ✓', 'green');
+    }
     atualizarFiltros();
     renderDashboard();
     renderEmpresas();
-    toggleForm('form-empresa');
-    limparForm(['emp-nome','emp-cnpj','emp-contato','emp-email']);
-    toast('Empresa criada com sucesso! ✓', 'green');
+    fecharFormEmpresa();
   } catch(e) { toast('Erro: ' + e.message, 'red'); }
 }
 
@@ -1046,6 +1076,7 @@ function renderEmpresas() {
     <td>${e.contato || '—'}</td>
     <td><span class="badge ${e.ativo ? 'b-green' : 'b-red'}">${e.ativo ? 'Ativo' : 'Inativo'}</span></td>
     <td style="display:flex;gap:6px">
+      <button class="btn btn-ghost btn-sm" onclick="editarEmpresa('${e.id}')">✏️ Editar</button>
       <button class="btn btn-ghost btn-sm" onclick="toggleEmpresa('${e.id}',${e.ativo})">${e.ativo ? 'Desativar' : 'Ativar'}</button>
     </td>
   </tr>`).join('');
@@ -1060,7 +1091,31 @@ async function toggleEmpresa(id, ativo) {
 }
 
 // ── Promotores ───────────────────────────────
-async function criarPromotor() {
+function editarPromotor(id) {
+  const p = _promotores.find(x => x.id === id);
+  if (!p) return;
+  _editandoId = id;
+  document.getElementById('prom-empresa').value = p.empresa_id || '';
+  document.getElementById('prom-nome').value = p.nome || '';
+  document.getElementById('prom-perfil').value = p.perfil || 'promotor';
+  document.getElementById('prom-cpf').value = p.cpf || '';
+  document.getElementById('prom-senha').value = p.senha || '';
+  document.getElementById('prom-email').value = p.email || '';
+  document.getElementById('form-promotor-titulo').textContent = 'Editar promotor';
+  document.getElementById('form-promotor-btn').textContent = 'Atualizar promotor';
+  document.getElementById('form-promotor').style.display = 'block';
+  document.getElementById('form-promotor').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function fecharFormPromotor() {
+  _editandoId = null;
+  limparForm(['prom-nome','prom-cpf','prom-senha','prom-email']);
+  document.getElementById('form-promotor-titulo').textContent = 'Novo promotor';
+  document.getElementById('form-promotor-btn').textContent = 'Salvar promotor';
+  toggleForm('form-promotor');
+}
+
+async function salvarPromotor() {
   const empresa = document.getElementById('prom-empresa').value;
   const nome    = document.getElementById('prom-nome').value.trim();
   const cpf     = document.getElementById('prom-cpf').value.trim();
@@ -1072,12 +1127,18 @@ async function criarPromotor() {
   if (!cpf)     { toast('Informe o CPF', 'red'); return; }
   if (!senha)   { toast('Informe a senha', 'red'); return; }
   try {
-    const [prom] = await supa('promotores', { method:'POST', body:{ empresa_id:empresa, nome, cpf, senha, perfil, email, ativo:true } });
-    _promotores.push(prom);
+    if (_editandoId) {
+      await supa(`promotores?id=eq.${_editandoId}`, { method:'PATCH', body:{ empresa_id:empresa, nome, cpf, senha, perfil, email } });
+      const p = _promotores.find(x => x.id === _editandoId);
+      if (p) Object.assign(p, { empresa_id:empresa, nome, cpf, senha, perfil, email });
+      toast(`Promotor ${nome} atualizado! ✓`, 'green');
+    } else {
+      const [prom] = await supa('promotores', { method:'POST', body:{ empresa_id:empresa, nome, cpf, senha, perfil, email, ativo:true } });
+      _promotores.push(prom);
+      toast(`Promotor ${nome} criado! ✓`, 'green');
+    }
     renderPromotores();
-    toggleForm('form-promotor');
-    limparForm(['prom-nome','prom-cpf','prom-senha','prom-email']);
-    toast(`Promotor ${nome} criado! ✓`, 'green');
+    fecharFormPromotor();
   } catch(e) { toast('Erro: ' + e.message, 'red'); }
 }
 
@@ -1105,6 +1166,7 @@ function renderPromotores() {
       <td><span class="badge b-gray">${nLojas} loja${nLojas !== 1 ? 's' : ''}</span></td>
       <td><span class="badge ${p.ativo ? 'b-green' : 'b-red'}">${p.ativo ? 'Ativo' : 'Inativo'}</span></td>
       <td style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm" onclick="editarPromotor('${p.id}')">✏️</button>
         <button class="btn btn-ghost btn-sm" onclick="togglePromotor('${p.id}',${p.ativo})">${p.ativo ? 'Desativar' : 'Ativar'}</button>
         <button class="btn btn-danger btn-sm" onclick="deletarPromotor('${p.id}','${p.nome}')">✕</button>
       </td>
@@ -1134,20 +1196,48 @@ async function deletarPromotor(id, nome) {
 }
 
 // ── Lojas ────────────────────────────────────
-document.getElementById('loja-empresa').addEventListener('change', function() {
-  const empId = this.value;
+function popularPromotoresCheck(empId, selecionados = []) {
   const proms = _promotores.filter(p => p.empresa_id === empId && p.ativo);
   const container = document.getElementById('loja-promotores-check');
   if (!proms.length) { container.innerHTML = '<div style="font-size:12px;color:var(--text3)">Nenhum promotor nesta empresa.</div>'; return; }
   container.innerHTML = proms.map(p => `
     <label style="display:flex;align-items:center;gap:7px;font-size:13px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;cursor:pointer">
-      <input type="checkbox" value="${p.id}"> ${p.nome}
+      <input type="checkbox" value="${p.id}" ${selecionados.includes(p.id) ? 'checked' : ''}> ${p.nome}
       <span class="badge b-gray" style="font-size:10px;margin-left:auto">${p.perfil}</span>
     </label>
   `).join('');
+}
+
+document.getElementById('loja-empresa').addEventListener('change', function() {
+  popularPromotoresCheck(this.value);
 });
 
-async function criarLoja() {
+function editarLoja(id) {
+  const l = _lojas.find(x => x.id === id);
+  if (!l) return;
+  _editandoId = id;
+  document.getElementById('loja-empresa').value = l.empresa_id || '';
+  document.getElementById('loja-nome').value = l.nome || '';
+  document.getElementById('loja-rede').value = l.rede || '';
+  document.getElementById('loja-cidade').value = l.cidade || '';
+  document.getElementById('loja-endereco').value = l.endereco || '';
+  const promsAtuais = _lojas_prom.filter(lp => lp.loja_id === id).map(lp => lp.promotor_id);
+  popularPromotoresCheck(l.empresa_id, promsAtuais);
+  document.getElementById('form-loja-titulo').textContent = 'Editar loja';
+  document.getElementById('form-loja-btn').textContent = 'Atualizar loja';
+  document.getElementById('form-loja').style.display = 'block';
+  document.getElementById('form-loja').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function fecharFormLoja() {
+  _editandoId = null;
+  limparForm(['loja-nome','loja-rede','loja-cidade','loja-endereco']);
+  document.getElementById('form-loja-titulo').textContent = 'Nova loja';
+  document.getElementById('form-loja-btn').textContent = 'Salvar loja';
+  toggleForm('form-loja');
+}
+
+async function salvarLoja() {
   const empresa  = document.getElementById('loja-empresa').value;
   const nome     = document.getElementById('loja-nome').value.trim();
   const rede     = document.getElementById('loja-rede').value.trim();
@@ -1158,18 +1248,35 @@ async function criarLoja() {
 
   const promsSel = Array.from(document.querySelectorAll('#loja-promotores-check input:checked')).map(i => i.value);
   try {
-    const [loja] = await supa('lojas', { method:'POST', body:{ empresa_id:empresa, nome, rede, cidade, endereco, ativo:true } });
-    _lojas.push(loja);
-    // Vincula promotores selecionados
-    if (promsSel.length) {
-      const vinculos = promsSel.map(pid => ({ promotor_id: pid, loja_id: loja.id }));
-      const novos = await supa('lojas_promotor', { method:'POST', body: vinculos });
-      _lojas_prom.push(...(novos || []));
+    if (_editandoId) {
+      await supa(`lojas?id=eq.${_editandoId}`, { method:'PATCH', body:{ empresa_id:empresa, nome, rede, cidade, endereco } });
+      const l = _lojas.find(x => x.id === _editandoId);
+      if (l) Object.assign(l, { empresa_id:empresa, nome, rede, cidade, endereco });
+
+      // Resincroniza vínculos de promotores: remove os antigos e insere os novos
+      const antigos = _lojas_prom.filter(lp => lp.loja_id === _editandoId);
+      if (antigos.length) {
+        await supa(`lojas_promotor?loja_id=eq.${_editandoId}`, { method:'DELETE' });
+        _lojas_prom = _lojas_prom.filter(lp => lp.loja_id !== _editandoId);
+      }
+      if (promsSel.length) {
+        const vinculos = promsSel.map(pid => ({ promotor_id: pid, loja_id: _editandoId }));
+        const novos = await supa('lojas_promotor', { method:'POST', body: vinculos });
+        _lojas_prom.push(...(novos || []));
+      }
+      toast(`Loja "${nome}" atualizada! ✓`, 'green');
+    } else {
+      const [loja] = await supa('lojas', { method:'POST', body:{ empresa_id:empresa, nome, rede, cidade, endereco, ativo:true } });
+      _lojas.push(loja);
+      if (promsSel.length) {
+        const vinculos = promsSel.map(pid => ({ promotor_id: pid, loja_id: loja.id }));
+        const novos = await supa('lojas_promotor', { method:'POST', body: vinculos });
+        _lojas_prom.push(...(novos || []));
+      }
+      toast(`Loja "${nome}" criada! ✓`, 'green');
     }
     renderLojas();
-    toggleForm('form-loja');
-    limparForm(['loja-nome','loja-rede','loja-cidade','loja-endereco']);
-    toast(`Loja "${nome}" criada! ✓`, 'green');
+    fecharFormLoja();
   } catch(e) { toast('Erro: ' + e.message, 'red'); }
 }
 
@@ -1189,6 +1296,7 @@ function renderLojas() {
       <td><span class="badge b-brand">${nProm} promotor${nProm !== 1 ? 'es' : ''}</span></td>
       <td><span class="badge ${l.ativo ? 'b-green' : 'b-red'}">${l.ativo ? 'Ativa' : 'Inativa'}</span></td>
       <td style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm" onclick="editarLoja('${l.id}')">✏️</button>
         <button class="btn btn-ghost btn-sm" onclick="toggleLoja('${l.id}',${l.ativo})">${l.ativo ? 'Desativar' : 'Ativar'}</button>
         <button class="btn btn-danger btn-sm" onclick="deletarLoja('${l.id}','${l.nome}')">✕</button>
       </td>
@@ -1213,7 +1321,32 @@ async function deletarLoja(id, nome) {
 }
 
 // ── Produtos ─────────────────────────────────
-async function criarProduto() {
+function editarProduto(id) {
+  const p = _produtos.find(x => x.id === id);
+  if (!p) return;
+  _editandoId = id;
+  document.getElementById('prod-empresa').value = p.empresa_id || '';
+  document.getElementById('prod-nome').value = p.nome || '';
+  document.getElementById('prod-sku').value = p.sku || '';
+  document.getElementById('prod-codigo-empresa').value = p.codigo_empresa || '';
+  document.getElementById('prod-fornecedor').value = p.fornecedor || '';
+  document.getElementById('prod-preco').value = p.preco_sugerido ? String(p.preco_sugerido).replace('.',',') : '';
+  document.getElementById('prod-minimo').value = p.estoque_minimo || '';
+  document.getElementById('form-produto-titulo').textContent = 'Editar produto';
+  document.getElementById('form-produto-btn').textContent = 'Atualizar produto';
+  document.getElementById('form-produto').style.display = 'block';
+  document.getElementById('form-produto').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function fecharFormProduto() {
+  _editandoId = null;
+  limparForm(['prod-nome','prod-sku','prod-codigo-empresa','prod-fornecedor','prod-preco','prod-minimo']);
+  document.getElementById('form-produto-titulo').textContent = 'Novo produto';
+  document.getElementById('form-produto-btn').textContent = 'Salvar produto';
+  toggleForm('form-produto');
+}
+
+async function salvarProduto() {
   const empresa     = document.getElementById('prod-empresa').value;
   const nome        = document.getElementById('prod-nome').value.trim();
   const sku         = document.getElementById('prod-sku').value.trim();
@@ -1224,12 +1357,19 @@ async function criarProduto() {
   if (!empresa) { toast('Selecione a empresa', 'red'); return; }
   if (!nome)    { toast('Informe o nome do produto', 'red'); return; }
   try {
-    const [prod] = await supa('produtos', { method:'POST', body:{ empresa_id:empresa, nome, sku, codigo_empresa: codigoEmp || null, fornecedor:fornec, preco_sugerido:preco, estoque_minimo:minimo, ativo:true } });
-    _produtos.push(prod);
+    const corpo = { empresa_id:empresa, nome, sku, codigo_empresa: codigoEmp || null, fornecedor:fornec, preco_sugerido:preco, estoque_minimo:minimo };
+    if (_editandoId) {
+      await supa(`produtos?id=eq.${_editandoId}`, { method:'PATCH', body: corpo });
+      const p = _produtos.find(x => x.id === _editandoId);
+      if (p) Object.assign(p, corpo);
+      toast(`Produto "${nome}" atualizado! ✓`, 'green');
+    } else {
+      const [prod] = await supa('produtos', { method:'POST', body:{ ...corpo, ativo:true } });
+      _produtos.push(prod);
+      toast(`Produto "${nome}" criado! ✓`, 'green');
+    }
     renderProdutos();
-    toggleForm('form-produto');
-    limparForm(['prod-nome','prod-sku','prod-codigo-empresa','prod-fornecedor','prod-preco','prod-minimo']);
-    toast(`Produto "${nome}" criado! ✓`, 'green');
+    fecharFormProduto();
   } catch(e) { toast('Erro: ' + e.message, 'red'); }
 }
 
@@ -1407,6 +1547,7 @@ function renderProdutos() {
       <td>${p.estoque_minimo || 0}</td>
       <td>${emp?.nome || '—'}</td>
       <td style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm" onclick="editarProduto('${p.id}')">✏️</button>
         <button class="btn btn-danger btn-sm" onclick="deletarProduto('${p.id}','${p.nome}')">✕</button>
       </td>
     </tr>`;
@@ -1595,7 +1736,33 @@ function atualizarProdutosSim() {
   fp.innerHTML = '<option value="">Todos</option>' + prods.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
 }
 
-async function criarSimilar() {
+function editarSimilar(id) {
+  const s = _similares.find(x => x.id === id);
+  if (!s) return;
+  _editandoId = id;
+  document.getElementById('sim-empresa').value = s.empresa_id;
+  atualizarProdutosSim();
+  document.getElementById('sim-produto').value = s.produto_id;
+  document.getElementById('sim-empresa-conc').value = s.empresa_concorrente || '';
+  document.getElementById('sim-nome-similar').value = s.produto_similar || '';
+  document.getElementById('sim-sku-conc').value = s.sku_concorrente || '';
+  document.getElementById('sim-preco-ref').value = s.preco_referencia ? String(s.preco_referencia).replace('.',',') : '';
+  document.getElementById('form-similar-titulo').textContent = 'Editar vínculo de similar';
+  document.getElementById('form-similar-btn').textContent = 'Atualizar similar';
+  document.getElementById('form-similar').style.display = 'block';
+  document.getElementById('form-similar').scrollIntoView({ behavior:'smooth' });
+}
+
+function fecharFormSimilar() {
+  _editandoId = null;
+  limparForm(['sim-empresa-conc','sim-nome-similar','sim-sku-conc','sim-preco-ref']);
+  document.getElementById('sim-produto').value = '';
+  document.getElementById('form-similar-titulo').textContent = 'Novo vínculo de similar';
+  document.getElementById('form-similar-btn').textContent = 'Salvar similar';
+  toggleForm('form-similar');
+}
+
+async function salvarSimilar() {
   const empId    = document.getElementById('sim-empresa').value;
   const prodId   = document.getElementById('sim-produto').value;
   const empConc  = document.getElementById('sim-empresa-conc').value.trim();
@@ -1607,16 +1774,19 @@ async function criarSimilar() {
   if (!empConc) { toast('Informe a empresa concorrente', 'red'); return; }
   if (!nomeSim) { toast('Informe o nome do produto similar', 'red'); return; }
   try {
-    const [sim] = await supa('similares_concorrentes', {
-      method: 'POST',
-      body: { empresa_id: empId, produto_id: prodId, empresa_concorrente: empConc, produto_similar: nomeSim, sku_concorrente: skuConc || null, preco_referencia: precoRef }
-    });
-    _similares.push(sim);
+    const corpo = { empresa_id: empId, produto_id: prodId, empresa_concorrente: empConc, produto_similar: nomeSim, sku_concorrente: skuConc || null, preco_referencia: precoRef };
+    if (_editandoId) {
+      await supa(`similares_concorrentes?id=eq.${_editandoId}`, { method:'PATCH', body: corpo });
+      const s = _similares.find(x => x.id === _editandoId);
+      if (s) Object.assign(s, corpo);
+      toast('Similar atualizado! ✓', 'green');
+    } else {
+      const [sim] = await supa('similares_concorrentes', { method: 'POST', body: corpo });
+      _similares.push(sim);
+      toast(`Similar adicionado! ✓`, 'green');
+    }
     renderSimilares();
-    toggleForm('form-similar');
-    limparForm(['sim-empresa-conc','sim-nome-similar','sim-sku-conc','sim-preco-ref']);
-    document.getElementById('sim-produto').value = '';
-    toast(`Similar adicionado! ✓`, 'green');
+    fecharFormSimilar();
   } catch(e) { toast('Erro: ' + e.message, 'red'); }
 }
 
@@ -1700,7 +1870,8 @@ function renderSimilares() {
                   ${precoConc ? `<span style="font-family:'DM Mono',monospace;font-size:13px">R$ ${precoConc.toFixed(2).replace('.',',')}</span>` : '<span style="color:var(--text3)">—</span>'}
                 </td>
                 <td style="padding:11px 14px;border-bottom:1px solid var(--border)">${diffTxt}</td>
-                <td style="padding:11px 14px;border-bottom:1px solid var(--border)">
+                <td style="padding:11px 14px;border-bottom:1px solid var(--border);display:flex;gap:4px">
+                  <button class="btn btn-ghost btn-sm" onclick="editarSimilar('${s.id}')">✏️</button>
                   <button class="btn btn-danger btn-sm" onclick="deletarSimilar('${s.id}','${s.empresa_concorrente}')">✕</button>
                 </td>
               </tr>`;
@@ -1713,6 +1884,9 @@ function renderSimilares() {
 }
 
 function abrirFormSimilarProduto(prodId, empId) {
+  _editandoId = null;
+  document.getElementById('form-similar-titulo').textContent = 'Novo vínculo de similar';
+  document.getElementById('form-similar-btn').textContent = 'Salvar similar';
   document.getElementById('form-similar').style.display = 'block';
   document.getElementById('sim-empresa').value = empId;
   atualizarProdutosSim();
@@ -1747,7 +1921,31 @@ function atualizarSelectsMeta() {
     : '<option value="">Nenhuma loja nesta empresa</option>';
 }
 
-async function criarMeta() {
+function editarMeta(id) {
+  const m = _metas.find(x => x.id === id);
+  if (!m) return;
+  _editandoId = id;
+  document.getElementById('meta-empresa').value = m.empresa_id;
+  atualizarSelectsMeta();
+  document.getElementById('meta-promotor').value = m.promotor_id;
+  document.getElementById('meta-loja').value = m.loja_id;
+  document.getElementById('meta-periodo').value = m.periodo;
+  document.getElementById('meta-valor').value = String(m.meta).replace('.',',');
+  document.getElementById('form-meta-titulo').textContent = 'Editar meta mensal';
+  document.getElementById('form-meta-btn').textContent = 'Atualizar meta';
+  document.getElementById('form-meta').style.display = 'block';
+  document.getElementById('form-meta').scrollIntoView({ behavior:'smooth' });
+}
+
+function fecharFormMeta() {
+  _editandoId = null;
+  document.getElementById('meta-valor').value = '';
+  document.getElementById('form-meta-titulo').textContent = 'Definir meta mensal';
+  document.getElementById('form-meta-btn').textContent = 'Salvar meta';
+  toggleForm('form-meta');
+}
+
+async function salvarMeta() {
   const empId    = document.getElementById('meta-empresa').value;
   const promId   = document.getElementById('meta-promotor').value;
   const lojaId   = document.getElementById('meta-loja').value;
@@ -1761,23 +1959,28 @@ async function criarMeta() {
   if (!valor)   { toast('Informe o valor da meta', 'red'); return; }
 
   try {
-    const result = await supa('desempenho?on_conflict=promotor_id,loja_id,periodo', {
-      method: 'POST',
-      prefer: 'resolution=merge-duplicates,return=representation',
-      body: {
-        empresa_id: empId, promotor_id: promId, loja_id: lojaId,
-        periodo, meta: valor, realizado: 0, tipo_realizado: 'projecao'
-      }
-    });
-    const meta = Array.isArray(result) ? result[0] : result;
-    if (!meta) throw new Error('Meta salva, mas o servidor não retornou os dados. Atualize a página.');
-    // Remove duplicata antiga se existir e adiciona a nova
-    _metas = _metas.filter(m => !(m.promotor_id === promId && m.loja_id === lojaId && m.periodo === periodo));
-    _metas.push(meta);
+    if (_editandoId) {
+      await supa(`desempenho?id=eq.${_editandoId}`, { method:'PATCH', body:{ meta: valor } });
+      const m = _metas.find(x => x.id === _editandoId);
+      if (m) m.meta = valor;
+      toast('Meta atualizada! ✓', 'green');
+    } else {
+      const result = await supa('desempenho?on_conflict=promotor_id,loja_id,periodo', {
+        method: 'POST',
+        prefer: 'resolution=merge-duplicates,return=representation',
+        body: {
+          empresa_id: empId, promotor_id: promId, loja_id: lojaId,
+          periodo, meta: valor, realizado: 0, tipo_realizado: 'projecao'
+        }
+      });
+      const meta = Array.isArray(result) ? result[0] : result;
+      if (!meta) throw new Error('Meta salva, mas o servidor não retornou os dados. Atualize a página.');
+      _metas = _metas.filter(m => !(m.promotor_id === promId && m.loja_id === lojaId && m.periodo === periodo));
+      _metas.push(meta);
+      toast('Meta salva! ✓', 'green');
+    }
     renderMetas();
-    toggleForm('form-meta');
-    document.getElementById('meta-valor').value = '';
-    toast('Meta salva! ✓', 'green');
+    fecharFormMeta();
   } catch(e) { toast('Erro: ' + e.message, 'red'); }
 }
 
@@ -1815,7 +2018,8 @@ function renderMetas() {
       <td><span class="badge ${pctCls}">${pct.toFixed(0)}%</span></td>
       <td>${statusBadge}</td>
       <td style="display:flex;gap:4px">
-        <button class="btn btn-ghost btn-sm" onclick="abrirFecharMeta('${m.id}')">${m.tipo_realizado === 'oficial' ? 'Editar' : 'Fechar mês'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="editarMeta('${m.id}')">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="abrirFecharMeta('${m.id}')">${m.tipo_realizado === 'oficial' ? 'Reabrir/Fechar' : 'Fechar mês'}</button>
         <button class="btn btn-danger btn-sm" onclick="deletarMeta('${m.id}')">✕</button>
       </td>
     </tr>`;
@@ -1874,7 +2078,34 @@ function atualizarSelectsBonus() {
     : '<option value="">Nenhum produto nesta empresa</option>';
 }
 
-async function criarBonus() {
+function editarBonus(id) {
+  const b = _bonusCampanhas.find(x => x.id === id);
+  if (!b) return;
+  _editandoId = id;
+  document.getElementById('bonus-empresa').value = b.empresa_id;
+  atualizarSelectsBonus();
+  document.getElementById('bonus-promotor').value = b.promotor_id;
+  document.getElementById('bonus-produto').value = b.produto_id;
+  document.getElementById('bonus-periodo').value = b.periodo;
+  document.getElementById('bonus-qtd-meta').value = b.qtd_meta || '';
+  document.getElementById('bonus-valor-meta').value = b.valor_bonus_meta ? String(b.valor_bonus_meta).replace('.',',') : '';
+  document.getElementById('bonus-qtd-super').value = b.qtd_super_meta || '';
+  document.getElementById('bonus-valor-super').value = b.valor_bonus_super ? String(b.valor_bonus_super).replace('.',',') : '';
+  document.getElementById('form-bonus-titulo').textContent = 'Editar campanha de bônus';
+  document.getElementById('form-bonus-btn').textContent = 'Atualizar campanha';
+  document.getElementById('form-bonus').style.display = 'block';
+  document.getElementById('form-bonus').scrollIntoView({ behavior:'smooth' });
+}
+
+function fecharFormBonus() {
+  _editandoId = null;
+  limparForm(['bonus-qtd-meta','bonus-valor-meta','bonus-qtd-super','bonus-valor-super']);
+  document.getElementById('form-bonus-titulo').textContent = 'Nova campanha de bônus';
+  document.getElementById('form-bonus-btn').textContent = 'Salvar campanha';
+  toggleForm('form-bonus');
+}
+
+async function salvarBonus() {
   const empId      = document.getElementById('bonus-empresa').value;
   const promId     = document.getElementById('bonus-promotor').value;
   const prodId     = document.getElementById('bonus-produto').value;
@@ -1892,19 +2123,30 @@ async function criarBonus() {
   if (!valorMeta){ toast('Informe o valor do bônus da meta', 'red'); return; }
 
   try {
-    const result = await supa('bonus_campanhas?on_conflict=promotor_id,produto_id,periodo', {
-      method: 'POST',
-      prefer: 'resolution=merge-duplicates,return=representation',
-      body: {
-        empresa_id: empId, promotor_id: promId, produto_id: prodId, periodo,
-        qtd_meta: qtdMeta, valor_bonus_meta: valorMeta,
-        qtd_super_meta: qtdSuper, valor_bonus_super: valorSuper,
-        status: 'aberta'
-      }
-    });
-    toggleForm('form-bonus');
-    limparForm(['bonus-qtd-meta','bonus-valor-meta','bonus-qtd-super','bonus-valor-super']);
-    toast('Campanha de bônus criada! ✓', 'green');
+    if (_editandoId) {
+      await supa(`bonus_campanhas?id=eq.${_editandoId}`, {
+        method: 'PATCH',
+        body: {
+          empresa_id: empId, promotor_id: promId, produto_id: prodId, periodo,
+          qtd_meta: qtdMeta, valor_bonus_meta: valorMeta,
+          qtd_super_meta: qtdSuper, valor_bonus_super: valorSuper
+        }
+      });
+      toast('Campanha atualizada! ✓', 'green');
+    } else {
+      await supa('bonus_campanhas?on_conflict=promotor_id,produto_id,periodo', {
+        method: 'POST',
+        prefer: 'resolution=merge-duplicates,return=representation',
+        body: {
+          empresa_id: empId, promotor_id: promId, produto_id: prodId, periodo,
+          qtd_meta: qtdMeta, valor_bonus_meta: valorMeta,
+          qtd_super_meta: qtdSuper, valor_bonus_super: valorSuper,
+          status: 'aberta'
+        }
+      });
+      toast('Campanha de bônus criada! ✓', 'green');
+    }
+    fecharFormBonus();
     await recarregarTudo(); // recarrega para puxar a view atualizada com promotor_nome/produto_nome
     navAdmin('bonus');
   } catch(e) { toast('Erro: ' + e.message, 'red'); }
@@ -1944,7 +2186,8 @@ function renderBonus() {
       <td class="mono" style="font-weight:700;color:${bonusGanho > 0 ? 'var(--green)' : 'var(--text3)'}">${bonusGanho > 0 ? 'R$ ' + bonusGanho.toFixed(2).replace('.',',') : '—'}</td>
       <td>${statusBadge}</td>
       <td style="display:flex;gap:4px">
-        <button class="btn btn-ghost btn-sm" onclick="abrirFecharBonus('${b.id}')">${b.status === 'fechada' ? 'Editar' : 'Fechar mês'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="editarBonus('${b.id}')">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="abrirFecharBonus('${b.id}')">${b.status === 'fechada' ? 'Reabrir/Fechar' : 'Fechar mês'}</button>
         <button class="btn btn-danger btn-sm" onclick="deletarBonus('${b.id}')">✕</button>
       </td>
     </tr>`;
@@ -2022,6 +2265,74 @@ function exportarAcessos() {
 }
 
 // ── Utilitários ──────────────────────────────
+// ── Abrir formulários no modo CRIAÇÃO (reseta edição residual) ──
+function abrirNovaEmpresa() {
+  _editandoId = null;
+  limparForm(['emp-nome','emp-cnpj','emp-contato','emp-email']);
+  document.getElementById('form-empresa-titulo').textContent = 'Nova empresa';
+  document.getElementById('form-empresa-btn').textContent = 'Salvar empresa';
+  toggleForm('form-empresa');
+}
+
+function abrirNovoPromotor() {
+  _editandoId = null;
+  limparForm(['prom-nome','prom-cpf','prom-senha','prom-email']);
+  document.getElementById('prom-empresa').value = '';
+  document.getElementById('prom-perfil').value = 'promotor';
+  document.getElementById('form-promotor-titulo').textContent = 'Novo promotor';
+  document.getElementById('form-promotor-btn').textContent = 'Salvar promotor';
+  toggleForm('form-promotor');
+}
+
+function abrirNovaLoja() {
+  _editandoId = null;
+  limparForm(['loja-nome','loja-rede','loja-cidade','loja-endereco']);
+  document.getElementById('loja-empresa').value = '';
+  document.getElementById('loja-promotores-check').innerHTML = '<div style="font-size:12px;color:var(--text3)">Selecione a empresa primeiro.</div>';
+  document.getElementById('form-loja-titulo').textContent = 'Nova loja';
+  document.getElementById('form-loja-btn').textContent = 'Salvar loja';
+  toggleForm('form-loja');
+}
+
+function abrirNovoProduto() {
+  _editandoId = null;
+  limparForm(['prod-nome','prod-sku','prod-codigo-empresa','prod-fornecedor','prod-preco','prod-minimo']);
+  document.getElementById('prod-empresa').value = '';
+  document.getElementById('form-produto-titulo').textContent = 'Novo produto';
+  document.getElementById('form-produto-btn').textContent = 'Salvar produto';
+  toggleForm('form-produto');
+}
+
+function abrirNovoSimilar() {
+  _editandoId = null;
+  limparForm(['sim-empresa-conc','sim-nome-similar','sim-sku-conc','sim-preco-ref']);
+  document.getElementById('sim-empresa').value = '';
+  document.getElementById('sim-produto').value = '';
+  document.getElementById('form-similar-titulo').textContent = 'Novo vínculo de similar';
+  document.getElementById('form-similar-btn').textContent = 'Salvar similar';
+  toggleForm('form-similar');
+}
+
+function abrirNovaMeta() {
+  _editandoId = null;
+  document.getElementById('meta-empresa').value = '';
+  document.getElementById('meta-valor').value = '';
+  document.getElementById('meta-periodo').value = '';
+  document.getElementById('form-meta-titulo').textContent = 'Definir meta mensal';
+  document.getElementById('form-meta-btn').textContent = 'Salvar meta';
+  toggleForm('form-meta');
+}
+
+function abrirNovaBonus() {
+  _editandoId = null;
+  limparForm(['bonus-qtd-meta','bonus-valor-meta','bonus-qtd-super','bonus-valor-super']);
+  document.getElementById('bonus-empresa').value = '';
+  document.getElementById('bonus-periodo').value = '';
+  document.getElementById('form-bonus-titulo').textContent = 'Nova campanha de bônus';
+  document.getElementById('form-bonus-btn').textContent = 'Salvar campanha';
+  toggleForm('form-bonus');
+}
+
 function toggleForm(id) {
   const el = document.getElementById(id);
   el.style.display = el.style.display === 'none' ? 'block' : 'none';
