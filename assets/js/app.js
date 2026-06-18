@@ -133,7 +133,7 @@ function fazerLogout() {
 }
 
 // ─── NAVEGAÇÃO ───────────────────────────────
-const SCREENS = ['home','estoque','checklist','avarias','desempenho','metas','oportunidades','pontuacao','config'];
+const SCREENS = ['home','estoque','checklist','avarias','desempenho','bonus','metas','oportunidades','pontuacao','config'];
 
 function navTo(nome) {
   SCREENS.forEach(s => {
@@ -147,6 +147,7 @@ function navTo(nome) {
   if (nome === 'checklist') carregarChecklist();
   if (nome === 'avarias') carregarAvarias();
   if (nome === 'desempenho') carregarDesempenho();
+  if (nome === 'bonus') carregarBonus();
   if (nome === 'config') renderConfig();
   if (nome === 'pontuacao') carregarRanking();
   window.scrollTo(0, 0);
@@ -163,6 +164,7 @@ function atualizarHome() {
   carregarResumoHome();
   carregarInteligenciaProdutos();
   carregarMetaCardHome();
+  carregarBonusCardHome();
 }
 
 async function carregarMetaCardHome() {
@@ -200,6 +202,26 @@ async function carregarMetaCardHome() {
   } catch(e) {
     container.innerHTML = '<div style="font-size:12px;color:var(--text3)">Não foi possível carregar.</div>';
     console.warn('Meta card home:', e);
+  }
+}
+
+async function carregarBonusCardHome() {
+  const card = el('home-bonus-card');
+  const container = el('home-bonus-resumo');
+  if (!card || !container || !_user) return;
+
+  const periodo = anoMes();
+  try {
+    const campanhas = await supa(`bonus_campanhas?promotor_id=eq.${_user.id}&periodo=eq.${periodo}&select=id`);
+    if (!campanhas?.length) {
+      card.style.display = 'none';
+      return;
+    }
+    card.style.display = 'block';
+    container.innerHTML = `<div style="font-size:12px;color:var(--text2)">🎁 <strong>${campanhas.length}</strong> campanha${campanhas.length !== 1 ? 's' : ''} ativa${campanhas.length !== 1 ? 's' : ''} este mês</div>`;
+  } catch(e) {
+    card.style.display = 'none';
+    console.warn('Bonus card home:', e);
   }
 }
 
@@ -1123,6 +1145,101 @@ async function carregarDesempenho() {
 
   } catch(e) {
     console.warn('Desempenho:', e);
+  }
+}
+
+// ─── BÔNUS POR PRODUTO ───────────────────────
+async function carregarBonus() {
+  if (!_user) return;
+  const container = el('lista-bonus');
+  if (!container) return;
+  container.innerHTML = '<div style="font-size:12px;color:var(--text3);text-align:center;padding:16px">Carregando...</div>';
+
+  const periodo = anoMes();
+  try {
+    const campanhas = await supa(
+      `bonus_campanhas?promotor_id=eq.${_user.id}&periodo=eq.${periodo}&select=*,produtos(nome,sku)`
+    );
+
+    if (!campanhas?.length) {
+      container.innerHTML = `
+        <div class="card">
+          <div class="empty">
+            <div class="empty-icon">🎁</div>
+            Nenhuma campanha de bônus este mês.<br>
+            <span style="font-size:11px">Fale com seu gestor para saber se há produtos em destaque.</span>
+          </div>
+        </div>`;
+      return;
+    }
+
+    // Busca a projeção de vendas desse promotor para cada produto da campanha
+    const produtoIds = campanhas.map(c => c.produto_id);
+    const lancamentos = await supa(
+      `estoque_lancamentos?promotor_id=eq.${_user.id}&data=gte.${periodo}-01&select=produto_id,qtd_vendida`
+    );
+
+    const qtdPorProduto = {};
+    (lancamentos || []).forEach(l => {
+      qtdPorProduto[l.produto_id] = (qtdPorProduto[l.produto_id] || 0) + (Number(l.qtd_vendida) || 0);
+    });
+
+    container.innerHTML = campanhas.map(c => {
+      const ehOficial = c.status === 'fechada';
+      const qtdAtual = ehOficial ? Number(c.qtd_oficial || 0) : (qtdPorProduto[c.produto_id] || 0);
+      const qtdMeta = Number(c.qtd_meta) || 0;
+      const qtdSuper = c.qtd_super_meta ? Number(c.qtd_super_meta) : null;
+
+      const pct = qtdMeta > 0 ? Math.min(150, (qtdAtual / qtdMeta * 100)) : 0;
+      const bateuMeta = qtdAtual >= qtdMeta;
+      const bateuSuper = qtdSuper && qtdAtual >= qtdSuper;
+
+      const bonusGanho = bateuSuper ? Number(c.valor_bonus_super)
+                        : bateuMeta ? Number(c.valor_bonus_meta)
+                        : 0;
+
+      const statusTxt = bateuSuper
+        ? `🚀 Super Meta atingida!`
+        : bateuMeta
+        ? `🎯 Meta atingida!`
+        : `Faltam ${Math.max(0, qtdMeta - qtdAtual).toFixed(0)} unidades para a meta`;
+
+      const barColor = bateuSuper ? 'var(--brand)' : bateuMeta ? 'var(--green)' : 'var(--amber)';
+
+      return `
+      <div class="card bonus-card">
+        <div class="bonus-card-head">
+          <div>
+            <div class="bonus-produto-nome">${c.produtos?.nome || '—'}</div>
+            ${c.produtos?.sku ? `<span class="est-sku">${c.produtos.sku}</span>` : ''}
+          </div>
+          <div class="bonus-valor-ganho">
+            ${bonusGanho > 0 ? `<div class="bonus-valor">${moeda(bonusGanho)}</div><div class="bonus-valor-label">garantido</div>` : `<div class="bonus-valor-zero">R$ 0</div>`}
+          </div>
+        </div>
+
+        <div class="bonus-progress-wrap">
+          <div class="bonus-progress-lbl">
+            <span>${qtdAtual.toFixed(0)} vendido${qtdAtual !== 1 ? 's' : ''}</span>
+            <span>Meta: ${qtdMeta.toFixed(0)}${qtdSuper ? ` · Super: ${qtdSuper.toFixed(0)}` : ''}</span>
+          </div>
+          <div class="bonus-bar">
+            <div class="bonus-bar-fill" style="width:${Math.min(100, pct)}%;background:${barColor}"></div>
+            ${qtdSuper ? `<div class="bonus-marker-super" style="left:${Math.min(100, (qtdMeta/qtdSuper*100))}%"></div>` : ''}
+          </div>
+        </div>
+
+        <div class="bonus-status-txt" style="color:${bateuMeta ? 'var(--green)' : 'var(--text2)'}">${statusTxt}</div>
+
+        ${qtdSuper && !bateuSuper ? `<div class="bonus-super-hint">🚀 Venda mais ${Math.max(0, qtdSuper - qtdAtual).toFixed(0)} e ganhe ${moeda(c.valor_bonus_super)} (Super Meta)</div>` : ''}
+
+        ${ehOficial ? '<div class="bonus-oficial-tag">✓ Mês fechado oficialmente</div>' : ''}
+      </div>`;
+    }).join('');
+
+  } catch(e) {
+    console.warn('Bônus:', e);
+    container.innerHTML = '<div class="ibox ibox-amber">Não foi possível carregar os bônus.</div>';
   }
 }
 
