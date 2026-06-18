@@ -145,8 +145,8 @@ function navTo(nome) {
   if (nome === 'home') atualizarHome();
   if (nome === 'estoque') renderEstoque();
   if (nome === 'checklist') carregarChecklist();
-  if (nome === 'concorrentes') renderConcorrentes();
   if (nome === 'avarias') carregarAvarias();
+  if (nome === 'desempenho') carregarDesempenho();
   if (nome === 'config') renderConfig();
   if (nome === 'pontuacao') carregarRanking();
   window.scrollTo(0, 0);
@@ -167,27 +167,6 @@ function atualizarHome() {
 function atualizarData() {
   const d = new Date();
   el('hdate').textContent = d.toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long' });
-}
-
-async function carregarMetaHome() {
-  if (!_user) return;
-  try {
-    const hoje = anoMes();
-    const rows = await supa(`desempenho?promotor_id=eq.${_user.id}&periodo=eq.${hoje}&select=meta,realizado`);
-    const d = rows?.[0];
-    if (d) {
-      el('home-meta-val').textContent = moeda(d.meta);
-      el('home-real-val').textContent = moeda(d.realizado);
-      const pct = d.meta > 0 ? Math.min(100, (d.realizado / d.meta) * 100) : 0;
-      el('home-meta-bar').style.width = pct + '%';
-      el('home-meta-pct').textContent = pct.toFixed(0) + '%';
-      const diasRestantes = diasUteisRestantes();
-      const falta = Math.max(0, d.meta - d.realizado);
-      el('home-meta-dia').textContent  = diasRestantes > 0 ? moeda(falta / diasRestantes) : '—';
-      el('home-meta-falta').textContent = moeda(falta);
-      el('home-dias-restantes').textContent = diasRestantes + ' dias úteis';
-    }
-  } catch(e) { console.warn('Meta home:', e); }
 }
 
 async function carregarResumoHome() {
@@ -1048,38 +1027,64 @@ async function uploadFoto(file, bucket) {
 }
 
 // ─── DESEMPENHO ───────────────────────────────
-function calcMeta() {
-  const meta  = parseFloat(el('fat-meta-input')?.value) || 0;
-  const real  = parseFloat(el('fat-real-input')?.value) || 0;
-  const pct   = meta > 0 ? (real / meta * 100).toFixed(0) : 0;
-  const dias  = diasUteisRestantes();
-  const falta = Math.max(0, meta - real);
-  const proj  = dias > 0 ? real + (real / (diasUteisDoMes() - dias + 1)) * dias : real;
-  if (el('desemp-pct'))      el('desemp-pct').textContent = pct + '%';
-  if (el('desemp-proj-fim')) el('desemp-proj-fim').textContent = moeda(proj);
-  if (el('home-fat-bar'))    el('home-fat-bar').style.width = Math.min(100, pct) + '%';
-  if (el('home-fat-pct'))    el('home-fat-pct').textContent = pct + '%';
-  if (el('home-fat-real'))   el('home-fat-real').textContent = moeda(real);
-  if (el('home-fat-meta'))   el('home-fat-meta').textContent = moeda(meta);
-}
-
-async function salvarDesempenho() {
-  const meta = parseFloat(el('fat-meta-input')?.value) || 0;
-  const real = parseFloat(el('fat-real-input')?.value) || 0;
+// ─── DESEMPENHO (meta cadastrada pelo Admin + projeção automática) ───
+async function carregarDesempenho() {
+  el('loja-desemp').textContent = nomeLojaAtual();
+  if (!_lojaId) {
+    el('desemp-pct').textContent = '—';
+    el('desemp-proj-fim').textContent = 'R$ —';
+    return;
+  }
+  const periodo = anoMes();
   try {
-    await supa('desempenho?on_conflict=promotor_id,periodo', {
-      method: 'POST',
-      prefer: 'resolution=merge-duplicates',
-      body: {
-        empresa_id: _user.empresa_id,
-        promotor_id: _user.id,
-        periodo: anoMes(),
-        meta, realizado: real
-      }
-    });
-    toast('Desempenho salvo!');
-    carregarMetaHome();
-  } catch(e) { toast('Erro: ' + e.message, 'red'); }
+    const [metas, lancamentos] = await Promise.all([
+      supa(`desempenho?promotor_id=eq.${_user.id}&loja_id=eq.${_lojaId}&periodo=eq.${periodo}&select=*`),
+      supa(`estoque_lancamentos?loja_id=eq.${_lojaId}&promotor_id=eq.${_user.id}&data=gte.${periodo}-01&select=qtd_vendida,preco,data`)
+    ]);
+
+    const metaRow = metas?.[0];
+    const valorProjetado = (lancamentos || []).reduce((s, l) => s + (Number(l.qtd_vendida) || 0) * (Number(l.preco) || 0), 0);
+
+    if (!metaRow) {
+      el('desemp-proj-fim').textContent = moeda(valorProjetado);
+      el('desemp-sem-meta')?.classList.remove('hidden');
+      el('desemp-com-meta')?.classList.add('hidden');
+      return;
+    }
+
+    el('desemp-sem-meta')?.classList.add('hidden');
+    el('desemp-com-meta')?.classList.remove('hidden');
+
+    const meta = Number(metaRow.meta) || 0;
+    const ehOficial = metaRow.tipo_realizado === 'oficial';
+    const valorAtual = ehOficial ? Number(metaRow.realizado) : valorProjetado;
+    const pct = meta > 0 ? Math.min(999, (valorAtual / meta * 100)) : 0;
+
+    const dias = diasUteisRestantes();
+    const falta = Math.max(0, meta - valorAtual);
+
+    el('desemp-meta-val').textContent = moeda(meta);
+    el('desemp-real-val').textContent = moeda(valorAtual);
+    el('desemp-pct').textContent = pct.toFixed(0) + '%';
+    el('desemp-bar').style.width = Math.min(100, pct) + '%';
+    el('desemp-falta').textContent = moeda(falta);
+    el('desemp-dia').textContent = dias > 0 ? moeda(falta / dias) : '—';
+    el('desemp-dias-restantes').textContent = dias + ' dias úteis restantes';
+
+    // Projeção de fim de mês (baseada no ritmo atual, só quando ainda é projeção)
+    const diaDoMes = new Date().getDate();
+    const projFim = !ehOficial && diaDoMes > 0
+      ? (valorProjetado / diaDoMes) * diasUteisDoMes()
+      : valorAtual;
+    el('desemp-proj-fim-card').textContent = moeda(projFim);
+
+    el('desemp-status-badge').innerHTML = ehOficial
+      ? '<span class="badge-oficial">✓ Venda oficial fechada</span>'
+      : '<span class="badge-projecao">📊 Projeção em tempo real</span>';
+
+  } catch(e) {
+    console.warn('Desempenho:', e);
+  }
 }
 
 // ─── OPORTUNIDADES ───────────────────────────
@@ -1343,6 +1348,7 @@ function selecionarLoja(id, nome) {
   });
   carregarResumoHome();
   carregarInteligenciaProdutos();
+  if (el('sc-desempenho')?.style.display === 'flex') carregarDesempenho();
 }
 
 // ─── PONTUAÇÃO ───────────────────────────────
