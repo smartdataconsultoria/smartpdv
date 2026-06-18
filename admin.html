@@ -969,15 +969,15 @@ function navAdmin(pg) {
 async function recarregarTudo() {
   try {
     [_empresas, _promotores, _lojas, _produtos, _lojas_prom, _similares, _metas, _projecoes, _bonusCampanhas] = await Promise.all([
-      supa('empresas?order=nome&select=*'),
-      supa('promotores?order=nome&select=*'),
-      supa('lojas?order=nome&select=*'),
-      supa('produtos?ativo=eq.true&order=nome&select=*'),
-      supa('lojas_promotor?select=*'),
-      supa('similares_concorrentes?order=created_at.desc&select=*'),
-      supa('desempenho?order=periodo.desc&select=*'),
-      supa('vw_projecao_vendas?select=*').catch(() => []),
-      supa('vw_bonus_completo?order=periodo.desc&select=*').catch(() => [])
+      supa('empresas?order=nome&select=*').catch(e => { console.warn('empresas:', e.message); return []; }),
+      supa('promotores?order=nome&select=*').catch(e => { console.warn('promotores:', e.message); return []; }),
+      supa('lojas?order=nome&select=*').catch(e => { console.warn('lojas:', e.message); return []; }),
+      supa('produtos?ativo=eq.true&order=nome&select=*').catch(e => { console.warn('produtos:', e.message); return []; }),
+      supa('lojas_promotor?select=*').catch(e => { console.warn('lojas_promotor:', e.message); return []; }),
+      supa('similares_concorrentes?order=created_at.desc&select=*').catch(e => { console.warn('similares:', e.message); return []; }),
+      supa('desempenho?order=periodo.desc&select=*').catch(e => { console.warn('desempenho:', e.message); return []; }),
+      supa('vw_projecao_vendas?select=*').catch(e => { console.warn('vw_projecao_vendas (verifique se metas_por_loja.sql foi executado):', e.message); return []; }),
+      supa('vw_bonus_completo?order=periodo.desc&select=*').catch(e => { console.warn('vw_bonus_completo (verifique se bonus_campanhas.sql foi executado):', e.message); return []; })
     ]);
     atualizarFiltros();
     renderDashboard();
