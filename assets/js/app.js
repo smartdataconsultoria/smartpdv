@@ -60,7 +60,6 @@ let _lojas  = [];     // lojas do promotor
 let _lojaId = null;   // loja selecionada
 let _produtos = [];   // produtos da empresa
 let _concorrentes = [];
-let _rankPeriodo = 'mes';
 
 // ─── INICIALIZAÇÃO ───────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
@@ -127,13 +126,13 @@ function fazerLogout() {
   localStorage.removeItem('spdv_loja');
   _user = null; _lojas = []; _lojaId = null; _produtos = []; _concorrentes = [];
   hide('main-nav');
-  ['home','estoque','checklist','concorrentes','avarias','desempenho','metas','oportunidades','pontuacao','config']
+  ['home','estoque','checklist','avarias','desempenho','bonus','metas','oportunidades','config']
     .forEach(s => hide('sc-' + s));
   mostrarLogin();
 }
 
 // ─── NAVEGAÇÃO ───────────────────────────────
-const SCREENS = ['home','estoque','checklist','avarias','desempenho','bonus','metas','oportunidades','pontuacao','config'];
+const SCREENS = ['home','estoque','checklist','avarias','desempenho','bonus','metas','oportunidades','config'];
 
 function navTo(nome) {
   SCREENS.forEach(s => {
@@ -149,7 +148,6 @@ function navTo(nome) {
   if (nome === 'desempenho') carregarDesempenho();
   if (nome === 'bonus') carregarBonus();
   if (nome === 'config') renderConfig();
-  if (nome === 'pontuacao') carregarRanking();
   window.scrollTo(0, 0);
 }
 
@@ -1509,88 +1507,10 @@ function selecionarLoja(id, nome) {
 }
 
 // ─── PONTUAÇÃO ───────────────────────────────
-const TABELA_PONTOS = [
-  { acao: 'Estoque salvo', pts: 10 },
-  { acao: 'Checklist 100%', pts: 20 },
-  { acao: 'Avaria registrada', pts: 8 },
-  { acao: 'Preço concorrente', pts: 5 },
-  { acao: 'Oportunidade registrada', pts: 6 },
-];
-
-const NIVEIS = [
-  { nome: '🌱 Iniciante', min: 0 },
-  { nome: '⭐ Bronze',    min: 100 },
-  { nome: '🥈 Prata',     min: 300 },
-  { nome: '🥇 Ouro',      min: 600 },
-  { nome: '💎 Diamante',  min: 1000 },
-];
-
 async function registrarPontos(tipo, pts) {
-  try {
-    await supa('pontos_historico', {
-      method: 'POST',
-      body: {
-        empresa_id: _user.empresa_id,
-        promotor_id: _user.id,
-        tipo, pontos: pts,
-        data: dataHoje()
-      }
-    });
-  } catch(e) { console.warn('Pontos:', e); }
-}
-
-async function carregarRanking() {
-  const tabela = el('tabela-pontos');
-  if (tabela) tabela.innerHTML = TABELA_PONTOS.map(p => `
-    <div class="pontos-row">
-      <span>${p.acao}</span>
-      <span class="pontos-val">+${p.pts} pts</span>
-    </div>
-  `).join('');
-
-  try {
-    const periodo = _rankPeriodo === 'mes' ? anoMes() : semanaAtual();
-    const rows = await supa(
-      `pontos_ranking?empresa_id=eq.${_user.empresa_id}&periodo=eq.${periodo}&select=promotor_id,promotores(nome),total&order=total.desc`
-    );
-    if (el('rank-periodo-label')) el('rank-periodo-label').textContent = _rankPeriodo === 'mes' ? 'Ranking do mês' : 'Ranking da semana';
-
-    if (!rows?.length) {
-      el('lista-ranking').innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:var(--text3)">Nenhum dado ainda.</div>';
-      return;
-    }
-    el('lista-ranking').innerHTML = rows.map((r, i) => {
-      const isEu = r.promotor_id === _user.id;
-      const cls = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
-      const emoji = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
-      if (isEu) {
-        el('rank-meu-nome').textContent = r.promotores?.nome || '—';
-        el('rank-meus-pts').textContent = r.total;
-        el('rank-minha-posicao').textContent = '#' + (i + 1);
-        const nivel = NIVEIS.slice().reverse().find(n => r.total >= n.min) || NIVEIS[0];
-        const prox  = NIVEIS.find(n => n.min > r.total);
-        if (el('rank-nivel-atual')) el('rank-nivel-atual').textContent = nivel.nome;
-        if (el('rank-pts-prox')) el('rank-pts-prox').textContent = prox ? `${prox.min - r.total} pts para ${prox.nome}` : '🏆 Nível máximo!';
-        if (el('rank-xp-bar')) el('rank-xp-bar').style.width = Math.min(100, (r.total - nivel.min) / ((prox?.min || nivel.min + 1000) - nivel.min) * 100) + '%';
-        el('rank-meu-emoji').textContent = emoji || '⭐';
-        if (el('home-meus-pts')) el('home-meus-pts').textContent = r.total;
-        if (el('home-nivel-nome')) el('home-nivel-nome').textContent = nivel.nome;
-        if (el('home-rank-pos')) el('home-rank-pos').textContent = `#${i + 1} no ranking`;
-      }
-      return `<div class="rank-item${isEu ? '" style="background:var(--brand-bg)' : ''}">
-        <div class="rank-pos-num ${cls}">${emoji || '#' + (i + 1)}</div>
-        <div class="rank-nome-item">${r.promotores?.nome || '—'}${isEu ? ' <span style="font-size:10px;color:var(--brand)">(você)</span>' : ''}</div>
-        <div class="rank-pts-item">${r.total} pts</div>
-      </div>`;
-    }).join('');
-  } catch(e) { console.warn('Ranking:', e); }
-}
-
-function setRankPeriodo(p) {
-  _rankPeriodo = p;
-  el('rank-btn-mes').style.fontWeight    = p === 'mes'    ? '700' : '400';
-  el('rank-btn-semana').style.fontWeight = p === 'semana' ? '700' : '400';
-  carregarRanking();
+  // Sistema de pontuação/ranking desativado — função mantida como no-op
+  // para não obrigar a remover as chamadas espalhadas pelo código.
+  return;
 }
 
 function salvarDataLancamento(v) { localStorage.setItem('spdv_data', v); }
