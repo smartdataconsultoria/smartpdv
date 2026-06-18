@@ -727,7 +727,7 @@ tr:hover td { background: var(--surface2); }
               </div>
               <div class="field">
                 <label>Promotor *</label>
-                <select id="meta-promotor"><option value="">Selecione a empresa primeiro</option></select>
+                <select id="meta-promotor" onchange="atualizarLojasMetaPorPromotor()"><option value="">Selecione a empresa primeiro</option></select>
               </div>
               <div class="field">
                 <label>Loja *</label>
@@ -1909,17 +1909,33 @@ async function deletarSimilar(id, nome) {
 function atualizarSelectsMeta() {
   const empId = document.getElementById('meta-empresa').value;
   const proms = _promotores.filter(p => p.empresa_id === empId && p.ativo);
-  const lojas = _lojas.filter(l => l.empresa_id === empId && l.ativo);
 
   const selProm = document.getElementById('meta-promotor');
   selProm.innerHTML = proms.length
     ? '<option value="">Selecione</option>' + proms.map(p => `<option value="${p.id}">${p.nome}</option>`).join('')
     : '<option value="">Nenhum promotor nesta empresa</option>';
 
+  // Loja depende do promotor escolhido — começa vazio
   const selLoja = document.getElementById('meta-loja');
+  selLoja.innerHTML = '<option value="">Selecione o promotor primeiro</option>';
+}
+
+function atualizarLojasMetaPorPromotor() {
+  const promId = document.getElementById('meta-promotor').value;
+  const selLoja = document.getElementById('meta-loja');
+
+  if (!promId) {
+    selLoja.innerHTML = '<option value="">Selecione o promotor primeiro</option>';
+    return;
+  }
+
+  // Só as lojas vinculadas a este promotor (via lojas_promotor)
+  const lojaIds = _lojas_prom.filter(lp => lp.promotor_id === promId).map(lp => lp.loja_id);
+  const lojas = _lojas.filter(l => lojaIds.includes(l.id) && l.ativo);
+
   selLoja.innerHTML = lojas.length
-    ? '<option value="">Selecione</option>' + lojas.map(l => `<option value="${l.id}">${l.nome}</option>`).join('')
-    : '<option value="">Nenhuma loja nesta empresa</option>';
+    ? '<option value="">Selecione</option>' + lojas.map(l => `<option value="${l.id}">${l.nome}${l.rede ? ' — ' + l.rede : ''}</option>`).join('')
+    : '<option value="">Nenhuma loja vinculada a este promotor</option>';
 }
 
 function editarMeta(id) {
@@ -1929,6 +1945,7 @@ function editarMeta(id) {
   document.getElementById('meta-empresa').value = m.empresa_id;
   atualizarSelectsMeta();
   document.getElementById('meta-promotor').value = m.promotor_id;
+  atualizarLojasMetaPorPromotor();
   document.getElementById('meta-loja').value = m.loja_id;
   document.getElementById('meta-periodo').value = m.periodo;
   document.getElementById('meta-valor').value = String(m.meta).replace('.',',');
@@ -2012,7 +2029,7 @@ function renderMetas() {
 
     return `<tr>
       <td><strong>${prom?.nome || '—'}</strong></td>
-      <td>${loja?.nome || '—'}</td>
+      <td>${loja?.nome || '—'}${loja?.rede ? ` <span style="color:var(--text3);font-size:11px">— ${loja.rede}</span>` : ''}</td>
       <td class="mono" style="font-size:12px">${m.periodo}</td>
       <td class="mono">R$ ${Number(m.meta).toFixed(2).replace('.',',')}</td>
       <td class="mono">R$ ${valorAtual.toFixed(2).replace('.',',')}</td>
