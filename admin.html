@@ -1,1626 +1,1096 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SmartPDV · Painel Admin</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<style>
-/* ── Tokens ── */
+/* ══════════════════════════════════════════════
+   SmartPDV · Design System · Tema Claro
+   Smartdata Consultoria
+══════════════════════════════════════════════ */
+
 :root {
-  --brand:      #1F6B75;
-  --brand-dark: #155860;
-  --brand-bg:   #E6F4F6;
-  --brand-mid:  #cce8ec;
-  --bg:         #F0F3F7;
-  --surface:    #FFFFFF;
-  --surface2:   #F5F7FA;
-  --border:     #E2E6ED;
-  --border2:    #C8CDD6;
-  --text:       #1A1D23;
-  --text2:      #4B5563;
-  --text3:      #9CA3AF;
-  --green:      #16A34A;
-  --green-bg:   #DCFCE7;
-  --red:        #DC2626;
-  --red-bg:     #FEE2E2;
-  --amber:      #D97706;
-  --amber-bg:   #FEF3C7;
-  --shadow:     0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
-  --shadow-md:  0 4px 16px rgba(0,0,0,.09);
-  --r:          12px;
-  --r-sm:       8px;
+  --brand:       #1F6B75;
+  --brand-dark:  #155860;
+  --brand-bg:    #E6F4F6;
+  --brand-light: #cce8ec;
+
+  --bg:          #F7F8FA;
+  --surface:     #FFFFFF;
+  --surface2:    #F0F2F5;
+  --border:      #E2E5EA;
+  --border2:     #C8CDD6;
+
+  --text:        #1A1D23;
+  --text2:       #4B5563;
+  --text3:       #9CA3AF;
+
+  --green:       #16A34A;
+  --green-bg:    #DCFCE7;
+  --red:         #DC2626;
+  --red-bg:      #FEE2E2;
+  --amber:       #D97706;
+  --amber-bg:    #FEF3C7;
+  --purple:      #7C3AED;
+  --purple-bg:   #EDE9FE;
+  --blue:        #2563EB;
+  --blue-bg:     #DBEAFE;
+
+  --radius:      14px;
+  --radius-sm:   8px;
+  --radius-xs:   6px;
+  --max-w:       480px;
+  --nav-h:       64px;
+  --header-h:    auto;
+
+  --shadow-sm:   0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
+  --shadow:      0 4px 12px rgba(0,0,0,.08);
 }
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{font-size:16px}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
-input,select,textarea,button{font-family:inherit}
 
-/* ── Layout ── */
-.shell { display:flex; min-height:100vh; }
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+input, select, textarea, button { font-family: inherit; }
 
-/* ── Sidebar ── */
-.sidebar {
-  width: 240px; flex-shrink: 0;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
+/* ── Loading ── */
+#overlay-loading {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #fff;
   display: flex; flex-direction: column;
-  position: sticky; top: 0; height: 100vh;
-  overflow-y: auto;
+  align-items: center; justify-content: center; gap: 16px;
 }
-.sb-logo {
-  padding: 20px 20px 16px;
-  border-bottom: 1px solid var(--border);
-}
-.sb-logo-text {
+.loading-logo {
   font-family: 'Syne', sans-serif;
-  font-size: 1.2rem; font-weight: 800;
+  font-size: 1.8rem; font-weight: 800; color: var(--text);
 }
-.sb-logo-text span { color: var(--brand); }
-.sb-badge {
-  display: inline-block; margin-top: 4px;
-  background: var(--brand-bg); color: var(--brand);
-  font-size: 10px; font-weight: 600;
-  padding: 2px 8px; border-radius: 20px;
-  border: 1px solid var(--brand-mid);
+.loading-logo span { color: var(--brand); }
+.loading-txt { font-size: 12px; color: var(--text3); }
+.spin {
+  width: 28px; height: 28px;
+  border: 3px solid var(--brand-light);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
 }
-.sb-nav { padding: 12px 10px; flex: 1; }
-.sb-section { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; padding: 8px 10px 4px; }
-.sb-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 10px; border-radius: var(--r-sm);
-  font-size: 13px; font-weight: 500; color: var(--text2);
-  cursor: pointer; transition: all .15s; margin-bottom: 2px;
-  border: none; background: none; width: 100%; text-align: left;
-}
-.sb-item:hover { background: var(--surface2); color: var(--text); }
-.sb-item.active { background: var(--brand-bg); color: var(--brand); font-weight: 600; }
-.sb-item .sb-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
-.sb-footer {
-  padding: 14px 20px;
-  border-top: 1px solid var(--border);
-  font-size: 12px; color: var(--text3);
-}
-.sb-footer strong { color: var(--brand); }
-
-/* ── Main ── */
-.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-.topbar {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 14px 28px;
-  display: flex; align-items: center; justify-content: space-between;
-  position: sticky; top: 0; z-index: 50;
-}
-.topbar-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; }
-.topbar-right { display: flex; align-items: center; gap: 10px; }
-.admin-badge {
-  background: var(--brand-bg); color: var(--brand);
-  font-size: 11px; font-weight: 600;
-  padding: 3px 10px; border-radius: 20px;
-  border: 1px solid var(--brand-mid);
-}
-.content { padding: 24px 28px; flex: 1; overflow-y: auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── Toast ── */
 #toast {
-  position: fixed; top: 20px; right: 20px; z-index: 9999;
+  position: fixed; bottom: calc(var(--nav-h) + 12px); left: 50%;
+  transform: translateX(-50%); z-index: 9000;
   background: var(--text); color: #fff;
   padding: 10px 18px; border-radius: 20px;
   font-size: 13px; font-weight: 500;
   opacity: 0; pointer-events: none;
   transition: opacity .25s;
-  box-shadow: var(--shadow-md);
-}
-#toast.show { opacity: 1; }
-#toast.green { background: var(--green); }
-#toast.red   { background: var(--red); }
-
-/* ── Page header ── */
-.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.page-title { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 700; }
-.page-sub { font-size: 13px; color: var(--text3); margin-top: 2px; }
-
-/* ── Stats row ── */
-.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
-.stat-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--r); padding: 16px;
+  white-space: nowrap;
   box-shadow: var(--shadow);
 }
-.stat-n { font-family: 'DM Mono', monospace; font-size: 1.8rem; font-weight: 600; color: var(--brand); line-height: 1; }
-.stat-l { font-size: 12px; color: var(--text3); margin-top: 4px; }
+#toast.show { opacity: 1; }
+
+/* ── Login ── */
+.login-wrap {
+  display: none;
+  min-height: 100vh;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 24px;
+  padding: 24px 16px;
+  background: linear-gradient(160deg, var(--brand-bg) 0%, #fff 60%);
+}
+.login-logo { text-align: center; }
+.login-logo-text {
+  font-family: 'Syne', sans-serif;
+  font-size: 2.4rem; font-weight: 800; color: var(--text);
+}
+.login-logo-text span { color: var(--brand); }
+.login-tagline { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.login-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 28px 24px;
+  width: 100%; max-width: 380px;
+  border: 1px solid var(--border);
+}
+.login-title { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 4px; }
+.login-sub { font-size: 13px; color: var(--text3); margin-bottom: 20px; }
+.login-field { margin-bottom: 14px; }
+.login-field label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 5px; }
+.login-field input {
+  width: 100%; padding: 11px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px; color: var(--text);
+  background: var(--bg);
+  outline: none; transition: border-color .15s;
+}
+.login-field input:focus { border-color: var(--brand); background: #fff; }
+.login-btn {
+  width: 100%; padding: 13px;
+  background: var(--brand); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  font-size: 15px; font-weight: 600;
+  cursor: pointer; margin-top: 4px;
+  transition: background .15s;
+}
+.login-btn:active { background: var(--brand-dark); }
+.login-loading { display: none; font-size: 13px; color: var(--text3); text-align: center; margin-top: 10px; }
+.login-error { display: none; font-size: 13px; color: var(--red); text-align: center; margin-top: 8px; }
+.login-divider { height: 1px; background: var(--border); margin: 18px 0; }
+.login-footer { font-size: 12px; color: var(--text3); text-align: center; line-height: 1.6; }
+
+/* ── Screen ── */
+.screen {
+  display: none;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-bottom: var(--nav-h);
+}
+
+/* ── Header ── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px 12px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: var(--shadow-sm);
+}
+.header-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.15rem; font-weight: 800; color: var(--text);
+}
+.logo span { color: var(--brand); }
+.h-row { display: flex; align-items: flex-start; justify-content: space-between; }
+.h-greeting { font-size: 13px; color: var(--text3); }
+.h-promotor { font-size: 13px; font-weight: 600; color: var(--brand); margin-top: 1px; }
+.h-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--text); }
+.h-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.h-time {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.5rem; font-weight: 500;
+  color: var(--brand); line-height: 1;
+}
+
+/* ── Loja pill ── */
+.loja-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--brand-bg); border: 1px solid var(--brand-light);
+  border-radius: 20px; padding: 6px 12px;
+  font-size: 12px; font-weight: 600; color: var(--brand);
+  cursor: pointer; margin-top: 10px;
+}
+.loja-pill-arrow { font-size: 10px; color: var(--text3); }
+
+/* ── Screen body ── */
+.screen-body {
+  padding: 12px 14px;
+  max-width: var(--max-w);
+  margin: 0 auto; width: 100%;
+  display: flex; flex-direction: column; gap: 10px;
+}
 
 /* ── Card ── */
 .card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--r); box-shadow: var(--shadow);
-  margin-bottom: 16px; overflow: hidden;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
 }
-.card-head {
+.subcard {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+}
+
+/* ── Card title ── */
+.ct {
+  font-family: 'Syne', sans-serif;
+  font-size: .8rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .04em;
+  color: var(--text3); margin-bottom: 10px;
+}
+
+/* ── Metrics grid ── */
+.metrics { display: grid; gap: 8px; margin-bottom: 12px; }
+.metrics.m2 { grid-template-columns: 1fr 1fr; }
+.metrics.m4 { grid-template-columns: repeat(4, 1fr); }
+.metric {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  border: 1px solid var(--border);
+}
+.metric-n {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.1rem; font-weight: 600;
+  color: var(--text); line-height: 1;
+}
+.metric-n.brand { color: var(--brand); }
+.metric-n.green  { color: var(--green); }
+.metric-n.red    { color: var(--red); }
+.metric-n.purple { color: var(--purple); }
+.metric-label { font-size: 10px; color: var(--text3); margin-bottom: 3px; }
+.metric-l { font-size: 10px; color: var(--text3); margin-top: 3px; }
+
+/* ── Progress bar ── */
+.pbar {
+  height: 6px; background: var(--surface2);
+  border-radius: 99px; overflow: hidden;
+  margin-bottom: 8px;
+}
+.pfill { height: 100%; background: var(--brand); border-radius: 99px; transition: width .4s; }
+.pct-label { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 600; color: var(--brand); }
+
+/* ── Meta bar ── */
+.meta-bar-wrap { margin-bottom: 10px; }
+.meta-lbl { display: flex; justify-content: space-between; font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+.meta-bar { height: 8px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+.meta-fill { height: 100%; background: var(--brand); border-radius: 99px; transition: width .4s; }
+
+/* ── Meta detail box ── */
+.meta-detail-box {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.meta-detail-label { font-size: 10px; color: var(--text3); }
+.meta-preview-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px; margin-bottom: 12px;
+}
+
+/* ── Res cards (home summary) ── */
+.res-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.res-card-head {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 18px;
+  padding: 12px 14px;
+  cursor: pointer;
   border-bottom: 1px solid var(--border);
 }
-.card-title { font-size: 14px; font-weight: 600; }
-.card-body { padding: 18px; }
+.res-card-head:active { background: var(--surface2); }
+.res-card-title { font-size: 13px; font-weight: 600; }
+.res-card-body { padding: 10px 14px; }
 
-/* ── Form ── */
-.form-grid { display: grid; gap: 14px; }
-.form-grid.g2 { grid-template-columns: 1fr 1fr; }
-.form-grid.g3 { grid-template-columns: 1fr 1fr 1fr; }
-.field { display: flex; flex-direction: column; gap: 5px; }
-.field label { font-size: 12px; font-weight: 600; color: var(--text2); }
-.field input, .field select, .field textarea {
-  padding: 9px 12px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--r-sm);
-  font-size: 14px; color: var(--text);
-  background: var(--surface2); outline: none;
-  transition: border-color .15s;
+/* ── Badges ── */
+.badge {
+  font-size: 11px; font-weight: 600; padding: 3px 9px;
+  border-radius: 20px; white-space: nowrap;
 }
-.field input:focus, .field select:focus { border-color: var(--brand); background: #fff; }
-.field-hint { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.b-neutral { background: var(--surface2); color: var(--text3); border: 1px solid var(--border); }
+.b-green { background: var(--green-bg); color: var(--green); }
+.b-red   { background: var(--red-bg);   color: var(--red); }
+.b-amber { background: var(--amber-bg); color: var(--amber); }
 
 /* ── Buttons ── */
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 9px 16px; border-radius: var(--r-sm);
-  font-size: 13px; font-weight: 600; border: none;
-  cursor: pointer; transition: all .15s;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 10px 16px; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 600; border: none;
+  cursor: pointer; transition: background .15s, transform .1s;
 }
 .btn:active { transform: scale(.98); }
-.btn-primary { background: var(--brand); color: #fff; }
-.btn-primary:hover { background: var(--brand-dark); }
+.btn-p { background: var(--brand); color: #fff; width: 100%; padding: 13px; }
+.btn-p:active { background: var(--brand-dark); }
+.btn-o { background: var(--brand-bg); color: var(--brand); border: 1.5px solid var(--brand-light); }
 .btn-ghost { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
-.btn-ghost:hover { background: var(--border); }
 .btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid #fca5a5; }
-.btn-sm { padding: 5px 11px; font-size: 12px; }
-.btn-full { width: 100%; }
+.btn-sm { font-size: 12px; padding: 6px 12px; }
 
-/* ── Table ── */
-.table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-thead tr { background: var(--surface2); }
-th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--border); white-space: nowrap; }
-td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: middle; }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: var(--surface2); }
+/* ── Form fields ── */
+.field { margin-bottom: 12px; }
+.field label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 5px; }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px; color: var(--text);
+  background: var(--bg);
+  outline: none; transition: border-color .15s;
+  appearance: none;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--brand); background: #fff;
+}
+.field textarea { resize: vertical; min-height: 72px; }
+.field input[type="date"] {
+  font-size: 11px; padding: 4px 7px;
+  border-color: var(--brand-light);
+  background: var(--surface2); color: var(--brand);
+  cursor: pointer;
+}
+.section-label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .05em; margin: 14px 0 8px; }
+
+/* ── Info boxes ── */
+.ibox {
+  border-radius: var(--radius-sm); padding: 10px 12px;
+  font-size: 12px; line-height: 1.5; margin-bottom: 10px;
+}
+.ibox-blue { background: var(--blue-bg); color: var(--blue); }
+.ibox-green { background: var(--green-bg); color: var(--green); }
+.ibox-amber { background: var(--amber-bg); color: var(--amber); }
+
+/* ── Alert banner ── */
+.alert-banner {
+  display: flex; align-items: center; justify-content: space-between;
+  border-radius: var(--radius-sm); padding: 10px 12px;
+  gap: 8px;
+}
+.alert-banner.amber { background: var(--amber-bg); border: 1px solid #fcd34d; }
+
+/* ── Checklist items ── */
+.ci {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.ci:last-child { border-bottom: none; padding-bottom: 0; }
+.cb {
+  width: 20px; height: 20px; border-radius: 6px;
+  border: 2px solid var(--border2); flex-shrink: 0;
+  background: var(--bg); transition: all .15s;
+}
+.ci.done .cb { background: var(--brand); border-color: var(--brand); position: relative; }
+.ci.done .cb::after {
+  content: '✓'; position: absolute;
+  inset: 0; display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 12px; font-weight: 700;
+}
+.ci.done .ci-label { color: var(--text3); text-decoration: line-through; }
+.ci-label { font-size: 13px; }
+
+/* ── Ring ── */
+.ring-wrap { display: flex; align-items: center; gap: 16px; }
+.ring-svg { display: block; }
+.ring-bg { fill: none; stroke: var(--surface2); stroke-width: 6; }
+.ring-fill { fill: none; stroke: var(--brand); stroke-width: 6; stroke-linecap: round; transform: rotate(-90deg); transform-origin: center; transition: stroke-dashoffset .4s; }
+.ring-text { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; fill: var(--brand); text-anchor: middle; dominant-baseline: central; }
+.ring-pct { font-family: 'DM Mono', monospace; font-size: 1.5rem; font-weight: 700; color: var(--brand); }
+.ring-lbl { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.ring-info { flex: 1; }
+
+/* ── Foto area ── */
+.foto-area {
+  border: 2px dashed var(--border2); border-radius: var(--radius-sm);
+  padding: 20px; text-align: center; cursor: pointer;
+  background: var(--surface2); transition: border-color .15s;
+}
+.foto-area:active { border-color: var(--brand); }
+.foto-placeholder { font-size: 13px; color: var(--text3); }
+
+/* ── Ranking ── */
+.rank-avatar {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--brand-bg); border: 3px solid var(--brand);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  font-size: 22px;
+}
+.rank-nome { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; }
+.rank-posicao-box {
+  text-align: center; background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 14px;
+}
+
+/* ── Nav ── */
+.nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  height: var(--nav-h);
+  display: none;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -2px 12px rgba(0,0,0,.06);
+  padding: 0 4px;
+  overflow-x: auto; overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+}
+.nav::-webkit-scrollbar { display: none; }
+.ni {
+  flex: 1; min-width: 52px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 2px;
+  background: none; border: none;
+  font-size: 9px; font-weight: 500;
+  color: var(--text3); padding: 6px 4px;
+  cursor: pointer; transition: color .15s;
+}
+.ni.active { color: var(--brand); }
+.ni-icon { font-size: 18px; line-height: 1; }
+
+/* ── Mono helper ── */
 .mono { font-family: 'DM Mono', monospace; }
 
-/* ── Badges ── */
-.badge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
-.b-green  { background: var(--green-bg);  color: var(--green); }
-.b-brand  { background: var(--brand-bg);  color: var(--brand); }
-.b-amber  { background: var(--amber-bg);  color: var(--amber); }
-.b-red    { background: var(--red-bg);    color: var(--red); }
-.b-gray   { background: var(--surface2);  color: var(--text3); border: 1px solid var(--border); }
-
-/* ── Empty state ── */
-.empty { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 13px; }
-.empty-icon { font-size: 2rem; margin-bottom: 8px; }
-
-/* ── Tabs ── */
-.tabs { display: flex; gap: 4px; margin-bottom: 16px; background: var(--surface2); padding: 4px; border-radius: var(--r-sm); border: 1px solid var(--border); width: fit-content; }
-.tab { padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--text3); cursor: pointer; border: none; background: none; transition: all .15s; }
-.tab.active { background: var(--surface); color: var(--brand); font-weight: 600; box-shadow: var(--shadow); }
-
-/* ── Login admin ── */
-#admin-login {
-  min-height: 100vh; display: flex;
-  align-items: center; justify-content: center;
-  background: linear-gradient(135deg, var(--brand-bg) 0%, #fff 60%);
+/* ── Estoque item card ── */
+.est-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px; margin-bottom: 8px;
 }
-.login-box {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 16px; padding: 36px 32px;
-  width: 100%; max-width: 380px;
-  box-shadow: var(--shadow-md);
+.est-item-nome { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+
+/* Grid 2x2 para os 4 campos principais */
+.est-grid-campos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
 }
-.login-logo { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; margin-bottom: 4px; }
-.login-logo span { color: var(--brand); }
-.login-sub { font-size: 13px; color: var(--text3); margin-bottom: 24px; }
-.login-field { margin-bottom: 14px; }
-.login-field label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 5px; }
-.login-field input { width: 100%; padding: 11px 12px; border: 1.5px solid var(--border); border-radius: var(--r-sm); font-size: 15px; background: var(--surface2); outline: none; transition: border-color .15s; }
-.login-field input:focus { border-color: var(--brand); background: #fff; }
-.login-btn { width: 100%; padding: 13px; background: var(--brand); color: #fff; border: none; border-radius: var(--r-sm); font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px; }
-.login-btn:hover { background: var(--brand-dark); }
-.login-err { display: none; color: var(--red); font-size: 13px; text-align: center; margin-top: 8px; }
-
-/* ── Divider ── */
-.divider { height: 1px; background: var(--border); margin: 18px 0; }
-
-/* ── Password copy row ── */
-.pwd-row { display: flex; align-items: center; gap: 6px; }
-.pwd-copy { cursor: pointer; font-size: 14px; opacity: .5; transition: opacity .15s; }
-.pwd-copy:hover { opacity: 1; }
-
-/* ── Responsive ── */
-@media (max-width: 768px) {
-  .sidebar { display: none; }
-  .content { padding: 16px; }
-  .topbar { padding: 12px 16px; }
-  .form-grid.g2, .form-grid.g3 { grid-template-columns: 1fr; }
-  .stats-row { grid-template-columns: repeat(2, 1fr); }
+.est-grid-campos label {
+  font-size: 11px; color: var(--text3);
+  display: block; margin-bottom: 3px;
 }
-</style>
-</head>
-<body>
+.est-grid-campos input,
+.est-grid-campos select {
+  width: 100%; padding: 8px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: 14px; background: var(--bg);
+  outline: none; appearance: none;
+}
+.est-grid-campos input:focus,
+.est-grid-campos select:focus { border-color: var(--brand); background: #fff; }
 
-<!-- ══════════════════════ LOGIN ADMIN ══════════════════════ -->
-<div id="admin-login">
-  <div class="login-box">
-    <div class="login-logo"><span>Smart</span>PDV</div>
-    <div style="margin-bottom:20px">
-      <span class="sb-badge">Painel Administrativo</span>
-    </div>
-    <div class="login-sub">Acesso restrito à Smartdata Consultoria</div>
-    <div class="login-field">
-      <label>Usuário admin</label>
-      <input type="text" id="adm-user" placeholder="admin" autocomplete="off">
-    </div>
-    <div class="login-field">
-      <label>Senha</label>
-      <input type="password" id="adm-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') loginAdmin()">
-    </div>
-    <button class="login-btn" onclick="loginAdmin()">Entrar no painel</button>
-    <div class="login-err" id="adm-err">Usuário ou senha incorretos.</div>
-    <div class="divider"></div>
-    <div style="font-size:11px;color:var(--text3);text-align:center">SmartPDV · Smartdata Consultoria</div>
-  </div>
-</div>
+/* Ruptura em linha separada, compacta */
+.est-ruptura-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 8px;
+}
+.est-ruptura-row label {
+  font-size: 11px; color: var(--text3); white-space: nowrap;
+}
+.est-ruptura-row select {
+  padding: 6px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: 13px; background: var(--bg);
+  outline: none; cursor: pointer;
+}
+.est-ruptura-row select:focus { border-color: var(--brand); }
 
-<!-- ══════════════════════ SHELL ══════════════════════ -->
-<div class="shell" id="admin-shell" style="display:none">
+/* Mantém .est-inputs para compatibilidade */
+.est-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.est-inputs label { font-size: 11px; color: var(--text3); display: block; margin-bottom: 3px; }
+.est-inputs input, .est-inputs select {
+  width: 100%; padding: 8px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: 14px; background: var(--bg);
+  outline: none;
+}
+.est-inputs input:focus, .est-inputs select:focus { border-color: var(--brand); background: #fff; }
+.est-status {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 600;
+  padding: 2px 8px; border-radius: 20px; margin-top: 8px;
+}
+.est-ok     { background: var(--green-bg); color: var(--green); }
+.est-alert  { background: var(--amber-bg); color: var(--amber); }
+.est-critico{ background: var(--red-bg);   color: var(--red); }
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sb-logo">
-      <div class="sb-logo-text"><span>Smart</span>PDV</div>
-      <div><span class="sb-badge">Admin</span></div>
-    </div>
-    <nav class="sb-nav">
-      <div class="sb-section">Visão geral</div>
-      <button class="sb-item active" onclick="navAdmin('dashboard')" id="nav-dashboard">
-        <span class="sb-icon">📊</span> Dashboard
-      </button>
-      <div class="sb-section">Gestão</div>
-      <button class="sb-item" onclick="navAdmin('empresas')" id="nav-empresas">
-        <span class="sb-icon">🏢</span> Empresas
-      </button>
-      <button class="sb-item" onclick="navAdmin('promotores')" id="nav-promotores">
-        <span class="sb-icon">👤</span> Promotores
-      </button>
-      <button class="sb-item" onclick="navAdmin('lojas')" id="nav-lojas">
-        <span class="sb-icon">🏪</span> Lojas / PDVs
-      </button>
-      <button class="sb-item" onclick="navAdmin('produtos')" id="nav-produtos">
-        <span class="sb-icon">📦</span> Produtos
-      </button>
-      <button class="sb-item" onclick="navAdmin('similares')" id="nav-similares">
-        <span class="sb-icon">🔄</span> Similares
-      </button>
-      <div class="sb-section">Sistema</div>
-      <button class="sb-item" onclick="navAdmin('acessos')" id="nav-acessos">
-        <span class="sb-icon">🔑</span> Acessos
-      </button>
-    </nav>
-    <div class="sb-footer">
-      <div>Logado como <strong>admin</strong></div>
-      <div style="margin-top:6px">
-        <button class="btn btn-ghost btn-sm" onclick="logoutAdmin()">Sair</button>
-      </div>
-    </div>
-  </aside>
+/* ── Concorrente item ── */
+.conc-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px; margin-bottom: 8px;
+}
+.conc-item-nome { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 8px; }
+.conc-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.conc-empresa { font-size: 11px; color: var(--text3); }
+.conc-input {
+  width: 100px; padding: 6px 8px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: 13px; font-family: 'DM Mono', monospace;
+  background: var(--bg); outline: none;
+}
+.conc-input:focus { border-color: var(--brand); }
+.conc-diff { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600; }
+.conc-diff.pos { color: var(--green); }
+.conc-diff.neg { color: var(--red); }
 
-  <!-- Main -->
-  <div class="main">
-    <div class="topbar">
-      <div class="topbar-title" id="topbar-title">Dashboard</div>
-      <div class="topbar-right">
-        <span class="admin-badge">Smartdata Admin</span>
-        <button class="btn btn-ghost btn-sm" onclick="recarregarTudo()">↻ Atualizar</button>
-      </div>
-    </div>
+/* ── Avaria item ── */
+.av-item {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.av-item:last-child { border-bottom: none; }
+.av-info .av-nome { font-size: 13px; font-weight: 600; }
+.av-info .av-det  { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.av-qty { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600; color: var(--red); }
 
-    <div class="content">
+/* ── Seletor lojas ── */
+.lojas-dropdown {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-top: 6px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.loja-option {
+  padding: 11px 14px;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.loja-option:last-child { border-bottom: none; }
+.loja-option:active { background: var(--surface2); }
+.loja-option.selected { color: var(--brand); background: var(--brand-bg); }
 
-      <!-- ── DASHBOARD ── -->
-      <div id="pg-dashboard">
-        <div class="page-header">
-          <div>
-            <div class="page-title">Visão geral</div>
-            <div class="page-sub">Resumo de todos os clientes e promotores ativos</div>
-          </div>
-        </div>
-        <div class="stats-row">
-          <div class="stat-card"><div class="stat-n" id="st-empresas">—</div><div class="stat-l">Empresas ativas</div></div>
-          <div class="stat-card"><div class="stat-n" id="st-promotores">—</div><div class="stat-l">Promotores cadastrados</div></div>
-          <div class="stat-card"><div class="stat-n" id="st-lojas">—</div><div class="stat-l">Lojas / PDVs</div></div>
-          <div class="stat-card"><div class="stat-n" id="st-produtos">—</div><div class="stat-l">Produtos cadastrados</div></div>
-        </div>
-        <div class="card">
-          <div class="card-head"><div class="card-title">Empresas cadastradas</div></div>
-          <div class="card-body" style="padding:0">
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Empresa</th><th>CNPJ</th><th>Promotores</th><th>Lojas</th><th>Status</th><th>Ações</th></tr></thead>
-                <tbody id="dash-empresas-tbody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
+/* ── Tabela de pontos ── */
+.pontos-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.pontos-row:last-child { border-bottom: none; }
+.pontos-val { font-family: 'DM Mono', monospace; font-weight: 600; color: var(--brand); }
 
-      <!-- ── EMPRESAS ── -->
-      <div id="pg-empresas" style="display:none">
-        <div class="page-header">
-          <div><div class="page-title">Empresas</div><div class="page-sub">Clientes da consultoria</div></div>
-          <button class="btn btn-primary" onclick="toggleForm('form-empresa')">+ Nova empresa</button>
-        </div>
+/* ── Ranking item ── */
+.rank-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.rank-item:last-child { border-bottom: none; }
+.rank-pos-num { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 700; color: var(--text3); min-width: 28px; text-align: center; }
+.rank-pos-num.top1 { color: #F59E0B; }
+.rank-pos-num.top2 { color: #6B7280; }
+.rank-pos-num.top3 { color: #92400E; }
+.rank-nome-item { flex: 1; font-size: 13px; font-weight: 500; }
+.rank-pts-item { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600; color: var(--brand); }
 
-        <div class="card" id="form-empresa" style="display:none">
-          <div class="card-head"><div class="card-title">Nova empresa</div></div>
-          <div class="card-body">
-            <div class="form-grid g2" style="margin-bottom:14px">
-              <div class="field"><label>Nome da empresa *</label><input type="text" id="emp-nome" placeholder="Ex: Distribuidora Fred"></div>
-              <div class="field"><label>CNPJ</label><input type="text" id="emp-cnpj" placeholder="00.000.000/0001-00"></div>
-            </div>
-            <div class="form-grid g2" style="margin-bottom:16px">
-              <div class="field"><label>Contato / responsável</label><input type="text" id="emp-contato" placeholder="Nome do responsável"></div>
-              <div class="field"><label>E-mail</label><input type="text" id="emp-email" placeholder="email@empresa.com"></div>
-            </div>
-            <div style="display:flex;gap:8px">
-              <button class="btn btn-primary" onclick="criarEmpresa()">Salvar empresa</button>
-              <button class="btn btn-ghost" onclick="toggleForm('form-empresa')">Cancelar</button>
-            </div>
-          </div>
-        </div>
+/* ── Conquistas ── */
+.conquista {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 8px 4px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); text-align: center;
+}
+.conquista.desbloqueada { background: var(--brand-bg); border-color: var(--brand-light); }
+.conquista .icone { font-size: 22px; }
+.conquista .nome { font-size: 9px; color: var(--text3); font-weight: 600; line-height: 1.2; }
+.conquista.desbloqueada .nome { color: var(--brand); }
 
-        <div class="card">
-          <div class="card-body" style="padding:0">
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Empresa</th><th>CNPJ</th><th>Contato</th><th>Status</th><th>Ações</th></tr></thead>
-                <tbody id="empresas-tbody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
+/* ── Utilitários ── */
+.hidden { display: none !important; }
+.text-center { text-align: center; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
 
-      <!-- ── PROMOTORES ── -->
-      <div id="pg-promotores" style="display:none">
-        <div class="page-header">
-          <div><div class="page-title">Promotores</div><div class="page-sub">Usuários de campo com acesso ao app</div></div>
-          <button class="btn btn-primary" onclick="toggleForm('form-promotor')">+ Novo promotor</button>
-        </div>
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 
-        <div class="card" id="form-promotor" style="display:none">
-          <div class="card-head"><div class="card-title">Novo promotor</div></div>
-          <div class="card-body">
-            <div class="form-grid g3" style="margin-bottom:14px">
-              <div class="field">
-                <label>Empresa *</label>
-                <select id="prom-empresa"><option value="">Selecione a empresa</option></select>
-              </div>
-              <div class="field"><label>Nome completo *</label><input type="text" id="prom-nome" placeholder="Nome do promotor"></div>
-              <div class="field"><label>Perfil</label>
-                <select id="prom-perfil">
-                  <option value="promotor">Promotor</option>
-                  <option value="supervisor">Supervisor</option>
-                  <option value="admin">Admin da empresa</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-grid g3" style="margin-bottom:16px">
-              <div class="field">
-                <label>CPF (login) *</label>
-                <input type="text" id="prom-cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14" oninput="maskCPFInput(this)">
-                <div class="field-hint">Usado para entrar no app</div>
-              </div>
-              <div class="field">
-                <label>Senha *</label>
-                <input type="text" id="prom-senha" placeholder="senha123">
-                <div class="field-hint">Compartilhe com o promotor</div>
-              </div>
-              <div class="field">
-                <label>E-mail</label>
-                <input type="text" id="prom-email" placeholder="promotor@email.com">
-              </div>
-            </div>
-            <div style="display:flex;gap:8px">
-              <button class="btn btn-primary" onclick="criarPromotor()">Salvar promotor</button>
-              <button class="btn btn-ghost" onclick="toggleForm('form-promotor')">Cancelar</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Filtro por empresa -->
-        <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center">
-          <label style="font-size:13px;font-weight:600;color:var(--text2)">Filtrar por empresa:</label>
-          <select id="filtro-empresa-prom" onchange="renderPromotores()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--surface);outline:none">
-            <option value="">Todas</option>
-          </select>
-        </div>
-
-        <div class="card">
-          <div class="card-body" style="padding:0">
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Nome</th><th>CPF</th><th>Senha</th><th>Perfil</th><th>Empresa</th><th>Lojas</th><th>Status</th><th>Ações</th></tr></thead>
-                <tbody id="promotores-tbody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── LOJAS ── -->
-      <div id="pg-lojas" style="display:none">
-        <div class="page-header">
-          <div><div class="page-title">Lojas / PDVs</div><div class="page-sub">Pontos de venda por empresa</div></div>
-          <button class="btn btn-primary" onclick="toggleForm('form-loja')">+ Nova loja</button>
-        </div>
-
-        <div class="card" id="form-loja" style="display:none">
-          <div class="card-head"><div class="card-title">Nova loja</div></div>
-          <div class="card-body">
-            <div class="form-grid g2" style="margin-bottom:14px">
-              <div class="field">
-                <label>Empresa *</label>
-                <select id="loja-empresa"><option value="">Selecione</option></select>
-              </div>
-              <div class="field"><label>Nome da loja *</label><input type="text" id="loja-nome" placeholder="Ex: Atacadão Boa Viagem"></div>
-            </div>
-            <div class="form-grid g3" style="margin-bottom:14px">
-              <div class="field"><label>Rede</label><input type="text" id="loja-rede" placeholder="Atacadão"></div>
-              <div class="field"><label>Cidade</label><input type="text" id="loja-cidade" placeholder="Recife"></div>
-              <div class="field"><label>Endereço</label><input type="text" id="loja-endereco" placeholder="Av. exemplo, 123"></div>
-            </div>
-            <div style="margin-bottom:16px">
-              <label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:8px">Vincular promotores a esta loja</label>
-              <div id="loja-promotores-check" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px">
-                <div style="font-size:12px;color:var(--text3)">Selecione a empresa primeiro.</div>
-              </div>
-            </div>
-            <div style="display:flex;gap:8px">
-              <button class="btn btn-primary" onclick="criarLoja()">Salvar loja</button>
-              <button class="btn btn-ghost" onclick="toggleForm('form-loja')">Cancelar</button>
-            </div>
-          </div>
-        </div>
-
-        <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center">
-          <label style="font-size:13px;font-weight:600;color:var(--text2)">Filtrar por empresa:</label>
-          <select id="filtro-empresa-loja" onchange="renderLojas()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--surface);outline:none">
-            <option value="">Todas</option>
-          </select>
-        </div>
-
-        <div class="card">
-          <div class="card-body" style="padding:0">
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Loja</th><th>Rede</th><th>Cidade</th><th>Empresa</th><th>Promotores</th><th>Status</th><th>Ações</th></tr></thead>
-                <tbody id="lojas-tbody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── PRODUTOS ── -->
-      <div id="pg-produtos" style="display:none">
-        <div class="page-header">
-          <div><div class="page-title">Produtos</div><div class="page-sub">Catálogo por empresa</div></div>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-ghost" onclick="baixarTemplate()">⬇ Baixar modelo Excel</button>
-            <button class="btn btn-ghost" onclick="document.getElementById('input-xlsx').click()">⬆ Importar Excel</button>
-            <button class="btn btn-ghost" onclick="exportarProdutosXlsx()">📊 Exportar Excel</button>
-            <button class="btn btn-primary" onclick="toggleForm('form-produto')">+ Novo produto</button>
-            <input type="file" id="input-xlsx" accept=".xlsx,.xls" style="display:none" onchange="importarProdutosXlsx(this)">
-          </div>
-        </div>
-
-        <!-- Preview de importação -->
-        <div class="card" id="card-preview-import" style="display:none">
-          <div class="card-head" style="background:var(--amber-bg);border-bottom-color:#fcd34d">
-            <div>
-              <div class="card-title" style="color:var(--amber)">⚠️ Revisar antes de importar</div>
-              <div style="font-size:12px;color:var(--text3);margin-top:2px" id="preview-resumo"></div>
-            </div>
-            <div style="display:flex;gap:8px">
-              <button class="btn btn-primary" onclick="confirmarImportacao()" id="btn-confirmar-import">✓ Confirmar importação</button>
-              <button class="btn btn-ghost" onclick="cancelarImportacao()">Cancelar</button>
-            </div>
-          </div>
-          <div class="card-body" style="padding:0">
-            <div class="table-wrap">
-              <table id="preview-table">
-                <thead><tr><th>Status</th><th>Nome</th><th>SKU</th><th>Fornecedor</th><th>Preço (R$)</th><th>Est. mínimo</th><th>Empresa</th></tr></thead>
-                <tbody id="preview-tbody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div class="card" id="form-produto" style="display:none">
-          <div class="card-head"><div class="card-title">Novo produto</div></div>
-          <div class="card-body">
-            <div class="form-grid g3" style="margin-bottom:14px">
-              <div class="field">
-                <label>Empresa *</label>
-                <select id="prod-empresa"><option value="">Selecione</option></select>
-              </div>
-              <div class="field"><label>Nome do produto *</label><input type="text" id="prod-nome" placeholder="Ex: Produto A — 500ml"></div>
-              <div class="field"><label>SKU / Código</label><input type="text" id="prod-sku" placeholder="SKU-001"></div>
-            </div>
-            <div class="form-grid g3" style="margin-bottom:16px">
-              <div class="field"><label>Fornecedor</label><input type="text" id="prod-fornecedor" placeholder="Distribuidora ABC"></div>
-              <div class="field"><label>Preço sugerido (R$)</label><input type="text" id="prod-preco" placeholder="0,00" inputmode="decimal"></div>
-              <div class="field"><label>Estoque mínimo</label><input type="number" id="prod-minimo" placeholder="20"></div>
-            </div>
-            <div style="display:flex;gap:8px">
-              <button class="btn btn-primary" onclick="criarProduto()">Salvar produto</button>
-              <button class="btn btn-ghost" onclick="toggleForm('form-produto')">Cancelar</button>
-            </div>
-          </div>
-        </div>
-
-        <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center">
-          <label style="font-size:13px;font-weight:600;color:var(--text2)">Filtrar por empresa:</label>
-          <select id="filtro-empresa-prod" onchange="renderProdutos()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--surface);outline:none">
-            <option value="">Todas</option>
-          </select>
-        </div>
-
-        <div class="card">
-          <div class="card-body" style="padding:0">
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Produto</th><th>SKU</th><th>Fornecedor</th><th>Preço sugerido</th><th>Est. mínimo</th><th>Empresa</th><th>Ações</th></tr></thead>
-                <tbody id="produtos-tbody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── SIMILARES ── -->
-      <div id="pg-similares" style="display:none">
-        <div class="page-header">
-          <div>
-            <div class="page-title">Similares de concorrentes</div>
-            <div class="page-sub">Vincule cada produto seu ao produto similar do concorrente — usado na pesquisa de preços do app</div>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-ghost" onclick="baixarTemplateSimilares()">⬇ Baixar modelo Excel</button>
-            <button class="btn btn-ghost" onclick="document.getElementById('input-xlsx-sim').click()">⬆ Importar Excel</button>
-            <button class="btn btn-ghost" onclick="exportarSimilaresXlsx()">📊 Exportar Excel</button>
-            <button class="btn btn-primary" onclick="toggleForm('form-similar')">+ Novo similar</button>
-            <input type="file" id="input-xlsx-sim" accept=".xlsx,.xls" style="display:none" onchange="importarSimilaresXlsx(this)">
-          </div>
-        </div>
-
-        <!-- Preview importação similares -->
-        <div class="card" id="card-preview-sim" style="display:none">
-          <div class="card-head" style="background:var(--amber-bg);border-bottom-color:#fcd34d">
-            <div>
-              <div class="card-title" style="color:var(--amber)">⚠️ Revisar antes de importar</div>
-              <div style="font-size:12px;color:var(--text3);margin-top:2px" id="preview-sim-resumo"></div>
-            </div>
-            <div style="display:flex;gap:8px">
-              <button class="btn btn-primary" onclick="confirmarImportacaoSimilares()" id="btn-confirmar-sim">✓ Confirmar importação</button>
-              <button class="btn btn-ghost" onclick="cancelarImportacaoSimilares()">Cancelar</button>
-            </div>
-          </div>
-          <div class="card-body" style="padding:0">
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Status</th><th>Meu produto</th><th>Concorrente</th><th>Produto similar</th><th>Preço ref. (R$)</th><th>Empresa</th></tr></thead>
-                <tbody id="preview-sim-tbody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- Formulário -->
-        <div class="card" id="form-similar" style="display:none">
-          <div class="card-head"><div class="card-title">Novo vínculo de similar</div></div>
-          <div class="card-body">
-            <div class="form-grid g2" style="margin-bottom:14px">
-              <div class="field">
-                <label>Empresa *</label>
-                <select id="sim-empresa" onchange="atualizarProdutosSim()"><option value="">Selecione a empresa</option></select>
-              </div>
-              <div class="field">
-                <label>Meu produto *</label>
-                <select id="sim-produto"><option value="">Selecione a empresa primeiro</option></select>
-              </div>
-            </div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;margin-bottom:14px">
-              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Produto similar do concorrente</div>
-              <div class="form-grid g2" style="margin-bottom:14px">
-                <div class="field">
-                  <label>Empresa concorrente *</label>
-                  <input type="text" id="sim-empresa-conc" placeholder="Ex: Concorrente A, Marca XYZ">
-                </div>
-                <div class="field">
-                  <label>Nome do produto similar *</label>
-                  <input type="text" id="sim-nome-similar" placeholder="Ex: Assento Rival — 500ml">
-                </div>
-              </div>
-              <div class="form-grid g2">
-                <div class="field">
-                  <label>SKU / Código do concorrente</label>
-                  <input type="text" id="sim-sku-conc" placeholder="Ex: COD-9981">
-                  <div class="field-hint">Fixo — não precisa ser digitado pelo promotor depois</div>
-                </div>
-                <div class="field">
-                  <label>Preço médio concorrente (R$)</label>
-                  <input type="text" id="sim-preco-ref" placeholder="0,00" inputmode="decimal">
-                  <div class="field-hint">Referência inicial — atualizado pelo promotor</div>
-                </div>
-              </div>
-            </div>
-            <div style="display:flex;gap:8px">
-              <button class="btn btn-primary" onclick="criarSimilar()">Salvar similar</button>
-              <button class="btn btn-ghost" onclick="toggleForm('form-similar')">Cancelar</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Filtros -->
-        <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center;flex-wrap:wrap">
-          <label style="font-size:13px;font-weight:600;color:var(--text2)">Empresa:</label>
-          <select id="filtro-empresa-sim" onchange="renderSimilares()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--surface);outline:none">
-            <option value="">Todas</option>
-          </select>
-          <label style="font-size:13px;font-weight:600;color:var(--text2);margin-left:8px">Produto:</label>
-          <select id="filtro-produto-sim" onchange="renderSimilares()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--surface);outline:none">
-            <option value="">Todos</option>
-          </select>
-        </div>
-
-        <!-- Tabela agrupada por produto -->
-        <div id="similares-lista"></div>
-      </div>
-
-      <!-- ── ACESSOS ── -->
-      <div id="pg-acessos" style="display:none">
-        <div class="page-header">
-          <div><div class="page-title">Acessos</div><div class="page-sub">Credenciais de login dos promotores</div></div>
-        </div>
-        <div class="card">
-          <div class="card-head">
-            <div class="card-title">Lista de acessos ativos</div>
-            <button class="btn btn-ghost btn-sm" onclick="exportarAcessos()">⬇ Exportar CSV</button>
-          </div>
-          <div class="card-body" style="padding:0">
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Nome</th><th>CPF (login)</th><th>Senha</th><th>Perfil</th><th>Empresa</th><th>Ativo</th></tr></thead>
-                <tbody id="acessos-tbody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div><!-- /content -->
-  </div><!-- /main -->
-</div><!-- /shell -->
-
-<div id="toast"></div>
-
-<script>
-// ── Config Supabase ──────────────────────────
-const SUPA_URL  = 'https://uoijdemarffretkobdff.supabase.co';
-const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvaWpkZW1hcmZmcmV0a29iZGZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNzU4MzksImV4cCI6MjA5Njc1MTgzOX0.pRZHX_zWXzdgqXyVDDOdZVhrhKz-H0-s9iVK3kAsRoY';
-
-// ── Credencial do admin (altere antes de publicar) ──
-const ADMIN_USER = 'smartdata';
-const ADMIN_PASS = 'admin@2026';
-
-// ── Estado ──────────────────────────────────
-let _empresas   = [];
-let _promotores = [];
-let _lojas      = [];
-let _produtos   = [];
-let _lojas_prom = []; // vínculos loja <-> promotor
-let _similares  = []; // similares de concorrentes
-
-// ── Supabase helper ──────────────────────────
-async function supa(path, opts = {}) {
-  const r = await fetch(`${SUPA_URL}/rest/v1/${path}`, {
-    headers: {
-      'apikey': SUPA_ANON,
-      'Authorization': `Bearer ${SUPA_ANON}`,
-      'Content-Type': 'application/json',
-      'Prefer': opts.prefer || 'return=representation',
-      ...(opts.headers || {})
-    },
-    method: opts.method || 'GET',
-    body: opts.body ? JSON.stringify(opts.body) : undefined
-  });
-  if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.message || `HTTP ${r.status}`); }
-  return r.status === 204 ? null : r.json();
+/* ── Safe area iOS ── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .nav { padding-bottom: env(safe-area-inset-bottom); height: calc(var(--nav-h) + env(safe-area-inset-bottom)); }
+  .screen { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom)); }
 }
 
-// ── Login admin ──────────────────────────────
-function loginAdmin() {
-  const u = document.getElementById('adm-user').value.trim();
-  const p = document.getElementById('adm-pass').value;
-  if (u === ADMIN_USER && p === ADMIN_PASS) {
-    sessionStorage.setItem('spdv_admin', '1');
-    document.getElementById('admin-login').style.display = 'none';
-    document.getElementById('admin-shell').style.display = 'flex';
-    recarregarTudo();
-  } else {
-    document.getElementById('adm-err').style.display = 'block';
-  }
-}
+/* ══════════════════════════════════════════════
+   RESPONSIVIDADE
+   Mobile  : < 640px  → app ocupa 100% da tela
+   Tablet  : 640–1024px → centralizado, max 600px
+   Desktop : > 1024px → app centralizado, 520px
+══════════════════════════════════════════════ */
 
-function logoutAdmin() {
-  sessionStorage.removeItem('spdv_admin');
-  document.getElementById('admin-shell').style.display = 'none';
-  document.getElementById('admin-login').style.display = 'flex';
-}
-
-// ── Navegação ────────────────────────────────
-const PAGES = ['dashboard','empresas','promotores','lojas','produtos','similares','acessos'];
-function navAdmin(pg) {
-  PAGES.forEach(p => {
-    document.getElementById('pg-' + p).style.display = p === pg ? 'block' : 'none';
-    document.getElementById('nav-' + p)?.classList.toggle('active', p === pg);
-  });
-  const titles = { dashboard:'Dashboard', empresas:'Empresas', promotores:'Promotores', lojas:'Lojas / PDVs', produtos:'Produtos', similares:'Similares', acessos:'Acessos' };
-  document.getElementById('topbar-title').textContent = titles[pg] || pg;
-  if (pg === 'promotores') renderPromotores();
-  if (pg === 'lojas')      renderLojas();
-  if (pg === 'produtos')   renderProdutos();
-  if (pg === 'similares')  renderSimilares();
-  if (pg === 'acessos')    renderAcessos();
-}
-
-// ── Carregar todos os dados ──────────────────
-async function recarregarTudo() {
-  try {
-    [_empresas, _promotores, _lojas, _produtos, _lojas_prom, _similares] = await Promise.all([
-      supa('empresas?order=nome&select=*'),
-      supa('promotores?order=nome&select=*'),
-      supa('lojas?order=nome&select=*'),
-      supa('produtos?ativo=eq.true&order=nome&select=*'),
-      supa('lojas_promotor?select=*'),
-      supa('similares_concorrentes?order=created_at.desc&select=*')
-    ]);
-    atualizarFiltros();
-    renderDashboard();
-    toast('Dados atualizados', 'green');
-  } catch(e) { toast('Erro ao carregar: ' + e.message, 'red'); }
-}
-
-function atualizarFiltros() {
-  const opts = '<option value="">Todas</option>' + _empresas.map(e => `<option value="${e.id}">${e.nome}</option>`).join('');
-  ['filtro-empresa-prom','filtro-empresa-loja','filtro-empresa-prod','filtro-empresa-sim',
-   'prom-empresa','loja-empresa','prod-empresa','sim-empresa'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = id.startsWith('filtro') ? opts : opts.replace('Todas','Selecione');
-  });
-}
-
-// ── Dashboard ────────────────────────────────
-function renderDashboard() {
-  document.getElementById('st-empresas').textContent   = _empresas.filter(e => e.ativo).length;
-  document.getElementById('st-promotores').textContent = _promotores.filter(p => p.ativo).length;
-  document.getElementById('st-lojas').textContent      = _lojas.filter(l => l.ativo).length;
-  document.getElementById('st-produtos').textContent   = _produtos.length;
-
-  const tbody = document.getElementById('dash-empresas-tbody');
-  if (!_empresas.length) { tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="empty-icon">🏢</div>Nenhuma empresa cadastrada.</div></td></tr>`; return; }
-  tbody.innerHTML = _empresas.map(e => {
-    const proms = _promotores.filter(p => p.empresa_id === e.id).length;
-    const lojas = _lojas.filter(l => l.empresa_id === e.id).length;
-    return `<tr>
-      <td><strong>${e.nome}</strong></td>
-      <td class="mono" style="font-size:12px">${e.cnpj || '—'}</td>
-      <td><span class="badge b-brand">${proms} promotor${proms !== 1 ? 'es' : ''}</span></td>
-      <td><span class="badge b-gray">${lojas} loja${lojas !== 1 ? 's' : ''}</span></td>
-      <td><span class="badge ${e.ativo ? 'b-green' : 'b-red'}">${e.ativo ? 'Ativo' : 'Inativo'}</span></td>
-      <td>
-        <button class="btn btn-ghost btn-sm" onclick="navAdmin('promotores');document.getElementById('filtro-empresa-prom').value='${e.id}';renderPromotores()">Ver promotores</button>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-// ── Empresas ─────────────────────────────────
-async function criarEmpresa() {
-  const nome    = document.getElementById('emp-nome').value.trim();
-  const cnpj    = document.getElementById('emp-cnpj').value.trim();
-  const contato = document.getElementById('emp-contato').value.trim();
-  const email   = document.getElementById('emp-email').value.trim();
-  if (!nome) { toast('Informe o nome da empresa', 'red'); return; }
-  try {
-    const [emp] = await supa('empresas', { method:'POST', body:{ nome, cnpj, contato, email, ativo:true } });
-    _empresas.push(emp);
-    atualizarFiltros();
-    renderDashboard();
-    renderEmpresas();
-    toggleForm('form-empresa');
-    limparForm(['emp-nome','emp-cnpj','emp-contato','emp-email']);
-    toast('Empresa criada com sucesso! ✓', 'green');
-  } catch(e) { toast('Erro: ' + e.message, 'red'); }
-}
-
-function renderEmpresas() {
-  const tbody = document.getElementById('empresas-tbody');
-  if (!_empresas.length) { tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><div class="empty-icon">🏢</div>Nenhuma empresa ainda.</div></td></tr>`; return; }
-  tbody.innerHTML = _empresas.map(e => `<tr>
-    <td><strong>${e.nome}</strong></td>
-    <td class="mono" style="font-size:12px">${e.cnpj || '—'}</td>
-    <td>${e.contato || '—'}</td>
-    <td><span class="badge ${e.ativo ? 'b-green' : 'b-red'}">${e.ativo ? 'Ativo' : 'Inativo'}</span></td>
-    <td style="display:flex;gap:6px">
-      <button class="btn btn-ghost btn-sm" onclick="toggleEmpresa('${e.id}',${e.ativo})">${e.ativo ? 'Desativar' : 'Ativar'}</button>
-    </td>
-  </tr>`).join('');
-}
-
-async function toggleEmpresa(id, ativo) {
-  await supa(`empresas?id=eq.${id}`, { method:'PATCH', body:{ ativo: !ativo } });
-  const emp = _empresas.find(e => e.id === id);
-  if (emp) emp.ativo = !ativo;
-  renderEmpresas(); renderDashboard();
-  toast(`Empresa ${!ativo ? 'ativada' : 'desativada'}`);
-}
-
-// ── Promotores ───────────────────────────────
-async function criarPromotor() {
-  const empresa = document.getElementById('prom-empresa').value;
-  const nome    = document.getElementById('prom-nome').value.trim();
-  const cpf     = document.getElementById('prom-cpf').value.trim();
-  const senha   = document.getElementById('prom-senha').value.trim();
-  const perfil  = document.getElementById('prom-perfil').value;
-  const email   = document.getElementById('prom-email').value.trim();
-  if (!empresa) { toast('Selecione a empresa', 'red'); return; }
-  if (!nome)    { toast('Informe o nome', 'red'); return; }
-  if (!cpf)     { toast('Informe o CPF', 'red'); return; }
-  if (!senha)   { toast('Informe a senha', 'red'); return; }
-  try {
-    const [prom] = await supa('promotores', { method:'POST', body:{ empresa_id:empresa, nome, cpf, senha, perfil, email, ativo:true } });
-    _promotores.push(prom);
-    renderPromotores();
-    toggleForm('form-promotor');
-    limparForm(['prom-nome','prom-cpf','prom-senha','prom-email']);
-    toast(`Promotor ${nome} criado! ✓`, 'green');
-  } catch(e) { toast('Erro: ' + e.message, 'red'); }
-}
-
-function renderPromotores() {
-  const filtro = document.getElementById('filtro-empresa-prom')?.value;
-  const lista  = filtro ? _promotores.filter(p => p.empresa_id === filtro) : _promotores;
-  const tbody  = document.getElementById('promotores-tbody');
-  if (!lista.length) { tbody.innerHTML = `<tr><td colspan="8"><div class="empty"><div class="empty-icon">👤</div>Nenhum promotor encontrado.</div></td></tr>`; return; }
-  tbody.innerHTML = lista.map(p => {
-    const emp   = _empresas.find(e => e.id === p.empresa_id);
-    const nLojas = _lojas_prom.filter(lp => lp.promotor_id === p.id).length;
-    const perfBadge = { admin:'b-red', supervisor:'b-amber', promotor:'b-brand' }[p.perfil] || 'b-gray';
-    return `<tr>
-      <td><strong>${p.nome}</strong></td>
-      <td class="mono" style="font-size:12px">${p.cpf}</td>
-      <td>
-        <div class="pwd-row">
-          <span id="pwd-${p.id}" style="font-size:12px;color:var(--text3)">••••••</span>
-          <span class="pwd-copy" onclick="togglePwd('${p.id}','${p.senha}')" title="Mostrar senha">👁</span>
-          <span class="pwd-copy" onclick="copiar('${p.senha}')" title="Copiar">📋</span>
-        </div>
-      </td>
-      <td><span class="badge ${perfBadge}">${p.perfil}</span></td>
-      <td>${emp?.nome || '—'}</td>
-      <td><span class="badge b-gray">${nLojas} loja${nLojas !== 1 ? 's' : ''}</span></td>
-      <td><span class="badge ${p.ativo ? 'b-green' : 'b-red'}">${p.ativo ? 'Ativo' : 'Inativo'}</span></td>
-      <td style="display:flex;gap:4px">
-        <button class="btn btn-ghost btn-sm" onclick="togglePromotor('${p.id}',${p.ativo})">${p.ativo ? 'Desativar' : 'Ativar'}</button>
-        <button class="btn btn-danger btn-sm" onclick="deletarPromotor('${p.id}','${p.nome}')">✕</button>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-function togglePwd(id, senha) {
-  const el = document.getElementById('pwd-' + id);
-  el.textContent = el.textContent === '••••••' ? senha : '••••••';
-}
-
-async function togglePromotor(id, ativo) {
-  await supa(`promotores?id=eq.${id}`, { method:'PATCH', body:{ ativo: !ativo } });
-  const p = _promotores.find(x => x.id === id);
-  if (p) p.ativo = !ativo;
-  renderPromotores();
-  toast(`Promotor ${!ativo ? 'ativado' : 'desativado'}`);
-}
-
-async function deletarPromotor(id, nome) {
-  if (!confirm(`Remover promotor "${nome}"? Esta ação não pode ser desfeita.`)) return;
-  await supa(`promotores?id=eq.${id}`, { method:'DELETE' });
-  _promotores = _promotores.filter(p => p.id !== id);
-  renderPromotores();
-  toast('Promotor removido');
-}
-
-// ── Lojas ────────────────────────────────────
-document.getElementById('loja-empresa').addEventListener('change', function() {
-  const empId = this.value;
-  const proms = _promotores.filter(p => p.empresa_id === empId && p.ativo);
-  const container = document.getElementById('loja-promotores-check');
-  if (!proms.length) { container.innerHTML = '<div style="font-size:12px;color:var(--text3)">Nenhum promotor nesta empresa.</div>'; return; }
-  container.innerHTML = proms.map(p => `
-    <label style="display:flex;align-items:center;gap:7px;font-size:13px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;cursor:pointer">
-      <input type="checkbox" value="${p.id}"> ${p.nome}
-      <span class="badge b-gray" style="font-size:10px;margin-left:auto">${p.perfil}</span>
-    </label>
-  `).join('');
-});
-
-async function criarLoja() {
-  const empresa  = document.getElementById('loja-empresa').value;
-  const nome     = document.getElementById('loja-nome').value.trim();
-  const rede     = document.getElementById('loja-rede').value.trim();
-  const cidade   = document.getElementById('loja-cidade').value.trim();
-  const endereco = document.getElementById('loja-endereco').value.trim();
-  if (!empresa) { toast('Selecione a empresa', 'red'); return; }
-  if (!nome)    { toast('Informe o nome da loja', 'red'); return; }
-
-  const promsSel = Array.from(document.querySelectorAll('#loja-promotores-check input:checked')).map(i => i.value);
-  try {
-    const [loja] = await supa('lojas', { method:'POST', body:{ empresa_id:empresa, nome, rede, cidade, endereco, ativo:true } });
-    _lojas.push(loja);
-    // Vincula promotores selecionados
-    if (promsSel.length) {
-      const vinculos = promsSel.map(pid => ({ promotor_id: pid, loja_id: loja.id }));
-      const novos = await supa('lojas_promotor', { method:'POST', body: vinculos });
-      _lojas_prom.push(...(novos || []));
-    }
-    renderLojas();
-    toggleForm('form-loja');
-    limparForm(['loja-nome','loja-rede','loja-cidade','loja-endereco']);
-    toast(`Loja "${nome}" criada! ✓`, 'green');
-  } catch(e) { toast('Erro: ' + e.message, 'red'); }
-}
-
-function renderLojas() {
-  const filtro = document.getElementById('filtro-empresa-loja')?.value;
-  const lista  = filtro ? _lojas.filter(l => l.empresa_id === filtro) : _lojas;
-  const tbody  = document.getElementById('lojas-tbody');
-  if (!lista.length) { tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="empty-icon">🏪</div>Nenhuma loja encontrada.</div></td></tr>`; return; }
-  tbody.innerHTML = lista.map(l => {
-    const emp   = _empresas.find(e => e.id === l.empresa_id);
-    const nProm = _lojas_prom.filter(lp => lp.loja_id === l.id).length;
-    return `<tr>
-      <td><strong>${l.nome}</strong></td>
-      <td>${l.rede || '—'}</td>
-      <td>${l.cidade || '—'}</td>
-      <td>${emp?.nome || '—'}</td>
-      <td><span class="badge b-brand">${nProm} promotor${nProm !== 1 ? 'es' : ''}</span></td>
-      <td><span class="badge ${l.ativo ? 'b-green' : 'b-red'}">${l.ativo ? 'Ativa' : 'Inativa'}</span></td>
-      <td style="display:flex;gap:4px">
-        <button class="btn btn-ghost btn-sm" onclick="toggleLoja('${l.id}',${l.ativo})">${l.ativo ? 'Desativar' : 'Ativar'}</button>
-        <button class="btn btn-danger btn-sm" onclick="deletarLoja('${l.id}','${l.nome}')">✕</button>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-async function toggleLoja(id, ativo) {
-  await supa(`lojas?id=eq.${id}`, { method:'PATCH', body:{ ativo: !ativo } });
-  const l = _lojas.find(x => x.id === id);
-  if (l) l.ativo = !ativo;
-  renderLojas();
-  toast(`Loja ${!ativo ? 'ativada' : 'desativada'}`);
-}
-
-async function deletarLoja(id, nome) {
-  if (!confirm(`Remover loja "${nome}"?`)) return;
-  await supa(`lojas?id=eq.${id}`, { method:'DELETE' });
-  _lojas = _lojas.filter(l => l.id !== id);
-  renderLojas();
-  toast('Loja removida');
-}
-
-// ── Produtos ─────────────────────────────────
-async function criarProduto() {
-  const empresa   = document.getElementById('prod-empresa').value;
-  const nome      = document.getElementById('prod-nome').value.trim();
-  const sku       = document.getElementById('prod-sku').value.trim();
-  const fornec    = document.getElementById('prod-fornecedor').value.trim();
-  const preco     = parseFloat(document.getElementById('prod-preco').value?.replace(',','.')) || 0;
-  const minimo    = parseInt(document.getElementById('prod-minimo').value) || 0;
-  if (!empresa) { toast('Selecione a empresa', 'red'); return; }
-  if (!nome)    { toast('Informe o nome do produto', 'red'); return; }
-  try {
-    const [prod] = await supa('produtos', { method:'POST', body:{ empresa_id:empresa, nome, sku, fornecedor:fornec, preco_sugerido:preco, estoque_minimo:minimo, ativo:true } });
-    _produtos.push(prod);
-    renderProdutos();
-    toggleForm('form-produto');
-    limparForm(['prod-nome','prod-sku','prod-fornecedor','prod-preco','prod-minimo']);
-    toast(`Produto "${nome}" criado! ✓`, 'green');
-  } catch(e) { toast('Erro: ' + e.message, 'red'); }
-}
-
-// ── Import / Export Excel ─────────────────────
-
-function baixarTemplate() {
-  const ws = XLSX.utils.aoa_to_sheet([
-    ['empresa_nome','nome','sku','fornecedor','preco_sugerido','estoque_minimo'],
-    ['Empresa Demo','Produto A — 500ml','SKU-001','Distribuidora ABC','12,90','20'],
-    ['Empresa Demo','Produto B — 1L','SKU-002','Distribuidora XYZ','24,50','10'],
-  ]);
-  ws['!cols'] = [{wch:20},{wch:30},{wch:12},{wch:22},{wch:16},{wch:14}];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Produtos');
-  XLSX.writeFile(wb, 'smartpdv_modelo_produtos.xlsx');
-  toast('Modelo baixado! Preencha e importe.', 'green');
-}
-
-function exportarProdutosXlsx() {
-  const filtro = document.getElementById('filtro-empresa-prod')?.value;
-  const lista  = filtro ? _produtos.filter(p => p.empresa_id === filtro) : _produtos;
-  if (!lista.length) { toast('Nenhum produto para exportar', 'red'); return; }
-  const rows = [['empresa_nome','nome','sku','fornecedor','preco_sugerido','estoque_minimo']];
-  lista.forEach(p => {
-    const emp = _empresas.find(e => e.id === p.empresa_id);
-    rows.push([emp?.nome || '', p.nome, p.sku || '', p.fornecedor || '',
-      p.preco_sugerido ? Number(p.preco_sugerido).toFixed(2).replace('.',',') : '0,00',
-      p.estoque_minimo || 0]);
-  });
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = [{wch:20},{wch:30},{wch:12},{wch:22},{wch:16},{wch:14}];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Produtos');
-  XLSX.writeFile(wb, 'smartpdv_produtos.xlsx');
-  toast(`${lista.length} produtos exportados!`, 'green');
-}
-
-let _importBuffer = []; // linhas aguardando confirmação
-
-function importarProdutosXlsx(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const wb   = XLSX.read(e.target.result, { type:'binary', cellDates:true, raw:false });
-      const ws   = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(ws, { defval:'' });
-      if (!rows.length) { toast('Planilha vazia ou formato inválido', 'red'); return; }
-      processarLinhasImport(rows);
-    } catch(err) { toast('Erro ao ler arquivo: ' + err.message, 'red'); }
-    input.value = ''; // reset input
-  };
-  reader.readAsBinaryString(file);
-}
-
-function processarLinhasImport(rows) {
-  _importBuffer = [];
-  const tbody = document.getElementById('preview-tbody');
-  const linhas = [];
-
-  rows.forEach((row, i) => {
-    // Aceita variações de nome de coluna (com/sem acento, maiúsculas)
-    const get = (...keys) => {
-      for (const k of keys) {
-        const found = Object.keys(row).find(rk => rk.trim().toLowerCase() === k.toLowerCase());
-        if (found && row[found] !== '') return String(row[found]).trim();
-      }
-      return '';
-    };
-
-    const empNome = get('empresa_nome','empresa','company');
-    const nome    = get('nome','name','produto','product');
-    const sku     = get('sku','codigo','code','cod');
-    const fornec  = get('fornecedor','supplier','distribuidor');
-    const precoRaw= get('preco_sugerido','preco','price','valor');
-    const minimoRaw = get('estoque_minimo','minimo','min','stock_min');
-
-    const preco  = parseFloat(precoRaw.replace(',','.')) || 0;
-    const minimo = parseInt(minimoRaw) || 0;
-
-    // Encontra empresa pelo nome (case-insensitive)
-    const emp = _empresas.find(e => e.nome.trim().toLowerCase() === empNome.trim().toLowerCase());
-
-    let status = 'ok', statusTxt = '✓ OK', statusCls = 'b-green';
-    if (!nome)   { status = 'erro'; statusTxt = '✕ Sem nome';    statusCls = 'b-red'; }
-    else if (!emp) { status = 'aviso'; statusTxt = '⚠ Empresa não encontrada'; statusCls = 'b-amber'; }
-
-    const linha = { empNome, nome, sku, fornec, preco, minimo, emp, status };
-    _importBuffer.push(linha);
-
-    linhas.push(`<tr>
-      <td><span class="badge ${statusCls}">${statusTxt}</span></td>
-      <td>${nome || '<span style="color:var(--red)">—</span>'}</td>
-      <td class="mono" style="font-size:12px">${sku || '—'}</td>
-      <td>${fornec || '—'}</td>
-      <td class="mono">R$ ${preco.toFixed(2).replace('.',',')}</td>
-      <td>${minimo}</td>
-      <td>${emp ? emp.nome : `<span style="color:var(--amber)">${empNome || '—'}</span>`}</td>
-    </tr>`);
-  });
-
-  tbody.innerHTML = linhas.join('');
-  const ok    = _importBuffer.filter(l => l.status === 'ok').length;
-  const aviso = _importBuffer.filter(l => l.status === 'aviso').length;
-  const erro  = _importBuffer.filter(l => l.status === 'erro').length;
-  document.getElementById('preview-resumo').textContent =
-    `${rows.length} linha(s) lidas · ${ok} ok · ${aviso} com aviso · ${erro} erro(s)`;
-  document.getElementById('btn-confirmar-import').textContent =
-    `✓ Importar ${ok + aviso} produto(s)`;
-  document.getElementById('card-preview-import').style.display = 'block';
-  document.getElementById('card-preview-import').scrollIntoView({ behavior:'smooth' });
-}
-
-async function confirmarImportacao() {
-  const validos = _importBuffer.filter(l => l.status !== 'erro' && l.nome);
-  if (!validos.length) { toast('Nenhum produto válido para importar', 'red'); return; }
-
-  const btn = document.getElementById('btn-confirmar-import');
-  btn.textContent = '⏳ Importando...';
-  btn.disabled = true;
-
-  const BATCH = 50;
-  let importados = 0, erros = 0;
-
-  for (let i = 0; i < validos.length; i += BATCH) {
-    const lote = validos.slice(i, i + BATCH).map(l => ({
-      empresa_id:    l.emp?.id || null,
-      nome:          l.nome,
-      sku:           l.sku || null,
-      fornecedor:    l.fornec || null,
-      preco_sugerido: l.preco,
-      estoque_minimo: l.minimo,
-      ativo:         true
-    })).filter(p => p.empresa_id); // só com empresa válida
-
-    try {
-      const novos = await supa('produtos', { method:'POST', body: lote, prefer:'resolution=ignore-duplicates' });
-      _produtos.push(...(novos || []));
-      importados += lote.length;
-    } catch(e) {
-      erros += lote.length;
-      console.warn('Lote falhou:', e.message);
-    }
+/* ── Base: body como fundo, tela como coluna centralizada ── */
+@media (min-width: 640px) {
+  body {
+    background: #E4E9F0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
   }
 
-  cancelarImportacao();
-  renderProdutos();
-  toast(`${importados} produto(s) importado(s)${erros ? ` · ${erros} erro(s)` : ''}! ✓`, 'green');
-  btn.disabled = false;
-}
-
-function cancelarImportacao() {
-  _importBuffer = [];
-  document.getElementById('card-preview-import').style.display = 'none';
-  document.getElementById('preview-tbody').innerHTML = '';
-}
-
-function renderProdutos() {
-  const filtro = document.getElementById('filtro-empresa-prod')?.value;
-  const lista  = filtro ? _produtos.filter(p => p.empresa_id === filtro) : _produtos;
-  const tbody  = document.getElementById('produtos-tbody');
-  if (!lista.length) { tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="empty-icon">📦</div>Nenhum produto encontrado.</div></td></tr>`; return; }
-  tbody.innerHTML = lista.map(p => {
-    const emp = _empresas.find(e => e.id === p.empresa_id);
-    return `<tr>
-      <td><strong>${p.nome}</strong></td>
-      <td class="mono" style="font-size:12px">${p.sku || '—'}</td>
-      <td>${p.fornecedor || '—'}</td>
-      <td class="mono">${p.preco_sugerido ? 'R$ ' + Number(p.preco_sugerido).toFixed(2).replace('.',',') : '—'}</td>
-      <td>${p.estoque_minimo || 0}</td>
-      <td>${emp?.nome || '—'}</td>
-      <td style="display:flex;gap:4px">
-        <button class="btn btn-danger btn-sm" onclick="deletarProduto('${p.id}','${p.nome}')">✕</button>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-async function deletarProduto(id, nome) {
-  if (!confirm(`Remover produto "${nome}"?`)) return;
-  await supa(`produtos?id=eq.${id}`, { method:'PATCH', body:{ ativo:false } });
-  _produtos = _produtos.filter(p => p.id !== id);
-  renderProdutos();
-  toast('Produto removido');
-}
-
-// ── Similares ────────────────────────────────
-
-function baixarTemplateSimilares() {
-  const ws = XLSX.utils.aoa_to_sheet([
-    ['empresa_nome','produto_nome','produto_sku','empresa_concorrente','produto_similar','preco_referencia'],
-    ['Smartdata Consult','Assento A','SKU-001','Concorrente A','Assento Rival 500ml','45,90'],
-    ['Smartdata Consult','Assento B','SKU-002','Concorrente B','Modelo XYZ 1L','52,00'],
-  ]);
-  ws['!cols'] = [{wch:20},{wch:28},{wch:12},{wch:22},{wch:28},{wch:16}];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Similares');
-  XLSX.writeFile(wb, 'smartpdv_modelo_similares.xlsx');
-  toast('Modelo baixado!', 'green');
-}
-
-function exportarSimilaresXlsx() {
-  const filtroEmp  = document.getElementById('filtro-empresa-sim')?.value;
-  const filtroProd = document.getElementById('filtro-produto-sim')?.value;
-  let lista = [..._similares];
-  if (filtroEmp)  lista = lista.filter(s => s.empresa_id === filtroEmp);
-  if (filtroProd) lista = lista.filter(s => s.produto_id === filtroProd);
-  if (!lista.length) { toast('Nenhum similar para exportar', 'red'); return; }
-
-  const rows = [['empresa_nome','produto_nome','produto_sku','empresa_concorrente','produto_similar','preco_referencia']];
-  lista.forEach(s => {
-    const emp  = _empresas.find(e => e.id === s.empresa_id);
-    const prod = _produtos.find(p => p.id === s.produto_id);
-    rows.push([
-      emp?.nome  || '',
-      prod?.nome || '',
-      prod?.sku  || '',
-      s.empresa_concorrente,
-      s.produto_similar,
-      s.preco_referencia ? Number(s.preco_referencia).toFixed(2).replace('.',',') : '0,00'
-    ]);
-  });
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = [{wch:20},{wch:28},{wch:12},{wch:22},{wch:28},{wch:16}];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Similares');
-  XLSX.writeFile(wb, 'smartpdv_similares.xlsx');
-  toast(`${lista.length} similar(es) exportado(s)!`, 'green');
-}
-
-let _importSimBuffer = [];
-
-function importarSimilaresXlsx(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const wb   = XLSX.read(e.target.result, { type:'binary', cellDates:true, raw:false });
-      const ws   = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(ws, { defval:'' });
-      if (!rows.length) { toast('Planilha vazia ou formato inválido', 'red'); return; }
-      processarLinhasSim(rows);
-    } catch(err) { toast('Erro ao ler arquivo: ' + err.message, 'red'); }
-    input.value = '';
-  };
-  reader.readAsBinaryString(file);
-}
-
-function processarLinhasSim(rows) {
-  _importSimBuffer = [];
-  const linhas = [];
-
-  rows.forEach(row => {
-    const get = (...keys) => {
-      for (const k of keys) {
-        const found = Object.keys(row).find(rk => rk.trim().toLowerCase() === k.toLowerCase());
-        if (found && row[found] !== '') return String(row[found]).trim();
-      }
-      return '';
-    };
-
-    const empNome    = get('empresa_nome','empresa');
-    const prodNome   = get('produto_nome','produto','nome');
-    const prodSku    = get('produto_sku','sku','codigo');
-    const empConc    = get('empresa_concorrente','concorrente');
-    const nomeSim    = get('produto_similar','similar','produto_concorrente');
-    const precoRaw   = get('preco_referencia','preco','price');
-    const preco      = parseFloat(precoRaw.replace(',','.')) || 0;
-
-    // Busca empresa
-    const emp = _empresas.find(e => e.nome.trim().toLowerCase() === empNome.trim().toLowerCase());
-    // Busca produto por nome ou SKU
-    const prod = emp ? _produtos.find(p =>
-      p.empresa_id === emp.id && (
-        p.nome.trim().toLowerCase() === prodNome.trim().toLowerCase() ||
-        (prodSku && p.sku && p.sku.trim().toLowerCase() === prodSku.trim().toLowerCase())
-      )
-    ) : null;
-
-    let status = 'ok', statusTxt = '✓ OK', statusCls = 'b-green';
-    if (!empConc || !nomeSim) { status = 'erro';  statusTxt = '✕ Dados incompletos'; statusCls = 'b-red'; }
-    else if (!emp)            { status = 'aviso'; statusTxt = '⚠ Empresa não encontrada'; statusCls = 'b-amber'; }
-    else if (!prod)           { status = 'aviso'; statusTxt = '⚠ Produto não encontrado'; statusCls = 'b-amber'; }
-
-    const linha = { emp, prod, empNome, prodNome, empConc, nomeSim, preco, status };
-    _importSimBuffer.push(linha);
-
-    linhas.push(`<tr>
-      <td><span class="badge ${statusCls}">${statusTxt}</span></td>
-      <td>${prod ? `<strong>${prod.nome}</strong>` : `<span style="color:var(--amber)">${prodNome||'—'}</span>`}</td>
-      <td>${empConc || '—'}</td>
-      <td>${nomeSim || '—'}</td>
-      <td class="mono" style="font-size:12px">R$ ${preco.toFixed(2).replace('.',',')}</td>
-      <td>${emp ? emp.nome : `<span style="color:var(--amber)">${empNome||'—'}</span>`}</td>
-    </tr>`);
-  });
-
-  document.getElementById('preview-sim-tbody').innerHTML = linhas.join('');
-  const ok    = _importSimBuffer.filter(l => l.status === 'ok').length;
-  const aviso = _importSimBuffer.filter(l => l.status === 'aviso').length;
-  const erro  = _importSimBuffer.filter(l => l.status === 'erro').length;
-  document.getElementById('preview-sim-resumo').textContent =
-    `${rows.length} linha(s) lidas · ${ok} ok · ${aviso} com aviso · ${erro} erro(s)`;
-  document.getElementById('btn-confirmar-sim').textContent =
-    `✓ Importar ${ok + aviso} similar(es)`;
-  document.getElementById('card-preview-sim').style.display = 'block';
-  document.getElementById('card-preview-sim').scrollIntoView({ behavior:'smooth' });
-}
-
-async function confirmarImportacaoSimilares() {
-  const validos = _importSimBuffer.filter(l => l.status !== 'erro' && l.emp && l.prod && l.empConc && l.nomeSim);
-  if (!validos.length) { toast('Nenhum similar válido para importar', 'red'); return; }
-
-  const btn = document.getElementById('btn-confirmar-sim');
-  btn.textContent = '⏳ Importando...';
-  btn.disabled = true;
-
-  const BATCH = 50;
-  let importados = 0, erros = 0;
-
-  for (let i = 0; i < validos.length; i += BATCH) {
-    const lote = validos.slice(i, i + BATCH).map(l => ({
-      empresa_id:          l.emp.id,
-      produto_id:          l.prod.id,
-      empresa_concorrente: l.empConc,
-      produto_similar:     l.nomeSim,
-      preco_referencia:    l.preco
-    }));
-    try {
-      const novos = await supa('similares_concorrentes', { method:'POST', body: lote });
-      _similares.push(...(novos || []));
-      importados += lote.length;
-    } catch(e) { erros += lote.length; console.warn('Lote sim falhou:', e.message); }
+  /* Login centralizado */
+  .login-wrap {
+    width: 100vw;
+    min-height: 100vh;
+    background: linear-gradient(160deg, var(--brand-bg) 0%, #fff 60%);
   }
 
-  cancelarImportacaoSimilares();
-  renderSimilares();
-  toast(`${importados} similar(es) importado(s)${erros ? ' · '+erros+' erro(s)' : ''}! ✓`, 'green');
-  btn.disabled = false;
-}
-
-function cancelarImportacaoSimilares() {
-  _importSimBuffer = [];
-  document.getElementById('card-preview-sim').style.display = 'none';
-  document.getElementById('preview-sim-tbody').innerHTML = '';
-}
-
-function atualizarProdutosSim() {
-  const empId = document.getElementById('sim-empresa').value;
-  const sel   = document.getElementById('sim-produto');
-  const prods = _produtos.filter(p => p.empresa_id === empId);
-  sel.innerHTML = prods.length
-    ? '<option value="">Selecione o produto</option>' + prods.map(p => `<option value="${p.id}">${p.nome}${p.sku ? ' — '+p.sku : ''}</option>`).join('')
-    : '<option value="">Nenhum produto nesta empresa</option>';
-  // Atualiza filtro de produto
-  const fp = document.getElementById('filtro-produto-sim');
-  fp.innerHTML = '<option value="">Todos</option>' + prods.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
-}
-
-async function criarSimilar() {
-  const empId    = document.getElementById('sim-empresa').value;
-  const prodId   = document.getElementById('sim-produto').value;
-  const empConc  = document.getElementById('sim-empresa-conc').value.trim();
-  const nomeSim  = document.getElementById('sim-nome-similar').value.trim();
-  const skuConc  = document.getElementById('sim-sku-conc').value.trim();
-  const precoRef = parseFloat(document.getElementById('sim-preco-ref').value?.replace(',','.')) || 0;
-  if (!empId)   { toast('Selecione a empresa', 'red'); return; }
-  if (!prodId)  { toast('Selecione o produto', 'red'); return; }
-  if (!empConc) { toast('Informe a empresa concorrente', 'red'); return; }
-  if (!nomeSim) { toast('Informe o nome do produto similar', 'red'); return; }
-  try {
-    const [sim] = await supa('similares_concorrentes', {
-      method: 'POST',
-      body: { empresa_id: empId, produto_id: prodId, empresa_concorrente: empConc, produto_similar: nomeSim, sku_concorrente: skuConc || null, preco_referencia: precoRef }
-    });
-    _similares.push(sim);
-    renderSimilares();
-    toggleForm('form-similar');
-    limparForm(['sim-empresa-conc','sim-nome-similar','sim-sku-conc','sim-preco-ref']);
-    document.getElementById('sim-produto').value = '';
-    toast(`Similar adicionado! ✓`, 'green');
-  } catch(e) { toast('Erro: ' + e.message, 'red'); }
-}
-
-function renderSimilares() {
-  const filtroEmp  = document.getElementById('filtro-empresa-sim')?.value;
-  const filtroProd = document.getElementById('filtro-produto-sim')?.value;
-  let lista = [..._similares];
-  if (filtroEmp)  lista = lista.filter(s => s.empresa_id === filtroEmp);
-  if (filtroProd) lista = lista.filter(s => s.produto_id === filtroProd);
-
-  const container = document.getElementById('similares-lista');
-  if (!lista.length) {
-    container.innerHTML = `<div class="card"><div class="empty"><div class="empty-icon">🔄</div>Nenhum similar cadastrado. Clique em "+ Novo similar" para começar.</div></div>`;
-    return;
+  /* Cada screen vira uma coluna centralizada */
+  .screen {
+    width: 100%;
+    max-width: 520px;
+    min-height: 100vh;
+    background: var(--bg);
+    box-shadow: 0 0 0 1px var(--border), 0 8px 48px rgba(0,0,0,.12);
+    flex-direction: column;
+    position: relative;
   }
 
-  // Atualiza filtro de produto baseado na empresa selecionada
-  const prods = filtroEmp ? _produtos.filter(p => p.empresa_id === filtroEmp) : _produtos;
-  const fp = document.getElementById('filtro-produto-sim');
-  if (fp) {
-    const cur = fp.value;
-    fp.innerHTML = '<option value="">Todos</option>' + prods.map(p => `<option value="${p.id}" ${p.id===cur?'selected':''}>${p.nome}</option>`).join('');
+  /* Header: sticky dentro do .screen — não precisa de transform */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    left: auto;
+    transform: none;
   }
 
-  // Agrupa por produto
-  const porProduto = {};
-  lista.forEach(s => {
-    if (!porProduto[s.produto_id]) porProduto[s.produto_id] = [];
-    porProduto[s.produto_id].push(s);
-  });
-
-  container.innerHTML = Object.entries(porProduto).map(([pid, sims]) => {
-    const prod = _produtos.find(p => p.id === pid);
-    const emp  = _empresas.find(e => e.id === sims[0].empresa_id);
-    const precoMeu = prod?.preco_sugerido ? Number(prod.preco_sugerido) : 0;
-    return `
-    <div class="card" style="margin-bottom:12px">
-      <div class="card-head" style="background:var(--surface2)">
-        <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:36px;height:36px;border-radius:8px;background:var(--brand-bg);border:1px solid var(--brand-mid);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📦</div>
-          <div>
-            <div style="font-size:14px;font-weight:600">${prod?.nome || '—'}</div>
-            <div style="font-size:11px;color:var(--text3)">
-              ${prod?.sku ? 'SKU: '+prod.sku+' · ' : ''}
-              ${prod?.fornecedor ? prod.fornecedor+' · ' : ''}
-              ${emp?.nome || ''}
-              ${precoMeu ? ' · <strong style="color:var(--brand)">R$ '+precoMeu.toFixed(2).replace('.',',')+' (meu preço)</strong>' : ''}
-            </div>
-          </div>
-        </div>
-        <button class="btn btn-ghost btn-sm" onclick="abrirFormSimilarProduto('${pid}','${sims[0].empresa_id}')">+ Adicionar concorrente</button>
-      </div>
-      <div class="card-body" style="padding:0">
-        <table style="width:100%;border-collapse:collapse;font-size:13px">
-          <thead>
-            <tr style="background:var(--surface2)">
-              <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border)">Concorrente</th>
-              <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border)">Produto similar</th>
-              <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border)">SKU</th>
-              <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border)">Preço ref.</th>
-              <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border)">Diferença</th>
-              <th style="padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border)">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${sims.map(s => {
-              const precoConc = s.preco_referencia ? Number(s.preco_referencia) : 0;
-              const diff = precoMeu && precoConc ? precoConc - precoMeu : null;
-              const diffTxt = diff !== null
-                ? `<span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:${diff>0?'var(--green)':diff<0?'var(--red)':'var(--text3)'}">${diff>0?'+':''}R$ ${diff.toFixed(2).replace('.',',')} ${diff>0?'(mais caro)':diff<0?'(mais barato)':''}</span>`
-                : '<span style="color:var(--text3)">—</span>';
-              return `<tr>
-                <td style="padding:11px 14px;border-bottom:1px solid var(--border)">
-                  <span style="font-weight:600">${s.empresa_concorrente}</span>
-                </td>
-                <td style="padding:11px 14px;border-bottom:1px solid var(--border);color:var(--text2)">${s.produto_similar}</td>
-                <td style="padding:11px 14px;border-bottom:1px solid var(--border)">
-                  ${s.sku_concorrente ? `<span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text3)">${s.sku_concorrente}</span>` : '<span style="color:var(--text3)">—</span>'}
-                </td>
-                <td style="padding:11px 14px;border-bottom:1px solid var(--border)">
-                  ${precoConc ? `<span style="font-family:'DM Mono',monospace;font-size:13px">R$ ${precoConc.toFixed(2).replace('.',',')}</span>` : '<span style="color:var(--text3)">—</span>'}
-                </td>
-                <td style="padding:11px 14px;border-bottom:1px solid var(--border)">${diffTxt}</td>
-                <td style="padding:11px 14px;border-bottom:1px solid var(--border)">
-                  <button class="btn btn-danger btn-sm" onclick="deletarSimilar('${s.id}','${s.empresa_concorrente}')">✕</button>
-                </td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function abrirFormSimilarProduto(prodId, empId) {
-  document.getElementById('form-similar').style.display = 'block';
-  document.getElementById('sim-empresa').value = empId;
-  atualizarProdutosSim();
-  document.getElementById('sim-produto').value = prodId;
-  document.getElementById('sim-empresa-conc').focus();
-  document.getElementById('form-similar').scrollIntoView({ behavior:'smooth' });
-}
-
-async function deletarSimilar(id, nome) {
-  if (!confirm(`Remover similar "${nome}"?`)) return;
-  await supa(`similares_concorrentes?id=eq.${id}`, { method:'DELETE' });
-  _similares = _similares.filter(s => s.id !== id);
-  renderSimilares();
-  toast('Similar removido');
-}
-
-// ── Acessos ──────────────────────────────────
-function renderAcessos() {
-  const tbody = document.getElementById('acessos-tbody');
-  const ativos = _promotores.filter(p => p.ativo);
-  if (!ativos.length) { tbody.innerHTML = `<tr><td colspan="6"><div class="empty">Nenhum acesso ativo.</div></td></tr>`; return; }
-  tbody.innerHTML = ativos.map(p => {
-    const emp = _empresas.find(e => e.id === p.empresa_id);
-    const perfBadge = { admin:'b-red', supervisor:'b-amber', promotor:'b-brand' }[p.perfil] || 'b-gray';
-    return `<tr>
-      <td><strong>${p.nome}</strong></td>
-      <td class="mono" style="font-size:13px">${p.cpf}</td>
-      <td>
-        <div class="pwd-row">
-          <span id="ac-pwd-${p.id}" style="font-size:12px;color:var(--text3)">••••••</span>
-          <span class="pwd-copy" onclick="togglePwd('ac-pwd-${p.id.replace(/[^a-zA-Z0-9]/g,'')}','${p.senha}')" title="Mostrar">👁</span>
-          <span class="pwd-copy" onclick="copiar('${p.cpf} / ${p.senha}')" title="Copiar acesso">📋</span>
-        </div>
-      </td>
-      <td><span class="badge ${perfBadge}">${p.perfil}</span></td>
-      <td>${emp?.nome || '—'}</td>
-      <td><span class="badge b-green">Ativo</span></td>
-    </tr>`;
-  }).join('');
-}
-
-function exportarAcessos() {
-  const header = 'Nome,CPF,Senha,Perfil,Empresa\n';
-  const rows = _promotores.filter(p => p.ativo).map(p => {
-    const emp = _empresas.find(e => e.id === p.empresa_id);
-    return `"${p.nome}","${p.cpf}","${p.senha}","${p.perfil}","${emp?.nome || ''}"`;
-  }).join('\n');
-  const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'smartpdv_acessos.csv';
-  a.click();
-  toast('CSV exportado! ✓', 'green');
-}
-
-// ── Utilitários ──────────────────────────────
-function toggleForm(id) {
-  const el = document.getElementById(id);
-  el.style.display = el.style.display === 'none' ? 'block' : 'none';
-}
-
-function limparForm(ids) { ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; }); }
-
-function maskCPFInput(input) {
-  let v = input.value.replace(/\D/g, '').slice(0, 11);
-  v = v.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-  input.value = v;
-}
-
-function copiar(txt) {
-  navigator.clipboard.writeText(txt).then(() => toast('Copiado! ✓', 'green'));
-}
-
-let _toastTimer;
-function toast(msg, tipo = '') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'show' + (tipo ? ' ' + tipo : '');
-  clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => t.className = '', 2800);
-}
-
-// ── Init ─────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
-  if (sessionStorage.getItem('spdv_admin')) {
-    document.getElementById('admin-login').style.display = 'none';
-    document.getElementById('admin-shell').style.display = 'flex';
-    recarregarTudo();
+  /* Nav: fixed mas alinhada ao .screen via margem automática */
+  .nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    max-width: 520px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    border-radius: 0;
   }
-  document.getElementById('adm-pass').addEventListener('keydown', e => {
-    if (e.key === 'Enter') loginAdmin();
-  });
-});
-</script>
-</body>
-</html>
+
+  .screen-body { padding: 14px 18px; gap: 12px; }
+  .card { box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+}
+
+/* ── Desktop: um pouco mais de respiro ── */
+@media (min-width: 1024px) {
+  .screen { max-width: 520px; }
+  .nav    { max-width: 520px; }
+  .screen-body { padding: 16px 20px; gap: 12px; }
+  .login-card  { max-width: 420px; }
+}
+
+/* ── Tablet ── */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .screen { max-width: 500px; }
+  .nav    { max-width: 500px; }
+}
+
+/* ── Mobile: ocupa 100% sem margens ── */
+@media (max-width: 639px) {
+  .screen { max-width: 100%; box-shadow: none; }
+  .screen-body { padding: 10px 12px; gap: 8px; }
+  .header { padding: 12px 14px 10px; }
+  .h-time { font-size: 1.25rem; }
+  .card { border-radius: 10px; }
+  .ni { min-width: 44px; font-size: 8px; }
+  .ni-icon { font-size: 16px; }
+}
+
+/* ── Telas muito pequenas ── */
+@media (max-width: 359px) {
+  .metrics.m4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Impressão / embed: sem nav ── */
+@media print {
+  .nav, .header { display: none !important; }
+  .screen { padding-bottom: 0; }
+}
+
+/* ══════════════════════════════════════════════
+   ESTOQUE — campos extras e painel de similares
+══════════════════════════════════════════════ */
+
+/* Header do item com nome + preço de referência */
+.est-item-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+.est-item-nome { font-size: 14px; font-weight: 700; color: var(--text); }
+.est-sku {
+  display: inline-block; margin-right: 7px;
+  font-size: 11px; font-weight: 700;
+  color: var(--brand); font-family: 'DM Mono', monospace;
+  background: var(--brand-bg); border: 1px solid var(--brand-mid);
+  padding: 2px 8px; border-radius: 4px;
+}
+.est-item-preco-ref {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px; font-weight: 600;
+  color: var(--brand); white-space: nowrap; flex-shrink: 0;
+}
+
+/* Inputs: agora 3 colunas na segunda linha */
+.est-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+@media (max-width: 400px) {
+  .est-inputs { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── Toggle bar de similares ── */
+.sim-toggle-bar {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 10px;
+  padding: 9px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background .15s;
+  user-select: none;
+}
+.sim-toggle-bar:hover { background: var(--brand-bg); border-color: var(--brand-mid); }
+.sim-toggle-bar.sim-toggle-open { background: var(--brand-bg); border-color: var(--brand-light); border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.sim-toggle-icon { font-size: 14px; }
+.sim-toggle-txt { flex: 1; font-size: 12px; font-weight: 600; color: var(--brand); }
+.sim-toggle-arrow { font-size: 11px; color: var(--text3); transition: transform .2s; }
+.sim-count-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--brand); color: #fff;
+  font-size: 10px; font-weight: 700;
+  width: 18px; height: 18px; border-radius: 50%;
+  margin-left: 4px;
+}
+
+/* ── Painel de similares ── */
+.sim-conc-panel {
+  background: var(--brand-bg);
+  border: 1px solid var(--brand-light);
+  border-top: none;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  padding: 10px 12px;
+}
+.sim-panel-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .05em; color: var(--brand); margin-bottom: 10px;
+  opacity: .7;
+}
+
+/* ── Linha de cada concorrente ── */
+.sim-conc-row {
+  background: var(--surface);
+  border: 1px solid var(--brand-light);
+  border-radius: var(--radius-xs);
+  padding: 10px; margin-bottom: 8px;
+}
+.sim-conc-row:last-child { margin-bottom: 0; }
+.sim-conc-label {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px;
+}
+.sim-conc-nome {
+  font-size: 12px; font-weight: 700; color: var(--text);
+  background: var(--brand-bg); border: 1px solid var(--brand-light);
+  padding: 2px 8px; border-radius: 20px; color: var(--brand);
+}
+.sim-produto-nome { font-size: 11px; color: var(--text3); }
+
+/* Grid 3 colunas: Preço | Estoque | Venda */
+.sim-conc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+.sim-conc-grid label {
+  font-size: 10px; font-weight: 600; color: var(--text3);
+  display: block; margin-bottom: 4px;
+}
+.sim-conc-grid input {
+  width: 100%; padding: 8px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: 13px; font-family: 'DM Mono', monospace;
+  background: var(--bg); outline: none;
+}
+.sim-conc-grid input:focus { border-color: var(--brand); background: #fff; }
+@media (max-width: 380px) {
+  .sim-conc-grid { grid-template-columns: 1fr 1fr; }
+}
+/* sim-preco-input — estilos migrados para .sim-linha input */
+
+/* ── Badge de diferença inline ── */
+.sim-diff-wrap { min-width: 80px; }
+.sim-diff-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px; font-weight: 700;
+  padding: 7px 10px; border-radius: var(--radius-xs);
+  background: var(--surface2); color: var(--text3);
+  border: 1px solid var(--border); text-align: center;
+  white-space: nowrap;
+}
+.sim-diff-badge.diff-pos { background: var(--green-bg); color: var(--green); border-color: #86efac; }
+.sim-diff-badge.diff-neg { background: var(--red-bg);   color: var(--red);   border-color: #fca5a5; }
+
+/* ══════════════════════════════════════════════
+   MODAL DE SUCESSO — pós salvamento de estoque
+══════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,.45);
+  backdrop-filter: blur(2px);
+}
+.modal-box {
+  position: fixed; z-index: 1001;
+  bottom: 0; left: 50%; transform: translateX(-50%) translateY(100%);
+  width: 100%; max-width: 520px;
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px 32px;
+  box-shadow: 0 -8px 32px rgba(0,0,0,.15);
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+}
+.modal-box-show { transform: translateX(-50%) translateY(0); }
+
+.modal-icon { font-size: 2.2rem; text-align: center; margin-bottom: 8px; }
+.modal-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.2rem; font-weight: 700;
+  text-align: center; margin-bottom: 16px;
+}
+
+/* Resumo de itens salvos */
+.modal-resumo {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.modal-res-item {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; color: var(--text2);
+}
+.modal-res-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
+
+/* Alerta de similares pendentes */
+.modal-alerta {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: var(--amber-bg);
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.modal-alerta-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+.modal-alerta-title {
+  font-size: 13px; font-weight: 700;
+  color: var(--amber); margin-bottom: 4px;
+}
+.modal-alerta-txt { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+/* Completo sem pendências */
+.modal-completo {
+  background: var(--green-bg);
+  border: 1px solid #86efac;
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13px; font-weight: 600;
+  color: var(--green);
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+/* Botões */
+.modal-btn-sim {
+  width: 100%; padding: 13px;
+  background: var(--amber); color: #000;
+  border: none; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 700;
+  cursor: pointer; margin-bottom: 8px;
+  transition: background .15s;
+}
+.modal-btn-sim:active { background: #b45309; color: #fff; }
+.modal-btn-ok {
+  width: 100%; padding: 12px;
+  background: var(--surface2); color: var(--text2);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+}
+.modal-btn-ok:active { background: var(--border); }
+
+/* ══════════════════════════════════════════════
+   CONFIRMAÇÃO POR PRODUTO
+══════════════════════════════════════════════ */
+
+/* Botão confirmar produto */
+.btn-confirmar-produto {
+  width: 100%; padding: 11px;
+  background: var(--brand); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 600;
+  cursor: pointer; margin-top: 8px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: background .15s;
+}
+.btn-confirmar-produto:active { background: var(--brand-dark); }
+
+/* Card confirmado */
+.est-item-confirmado {
+  border-color: var(--brand-light);
+  background: var(--brand-bg);
+}
+.est-item-confirmado .est-item-nome { color: var(--brand); }
+
+/* Resumo após confirmação */
+.est-resumo-confirmado {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  align-items: center; margin-bottom: 8px;
+}
+.est-resumo-linha {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--surface); border: 1px solid var(--brand-light);
+  border-radius: 20px; padding: 4px 10px;
+  font-size: 12px; color: var(--text2);
+}
+.est-resumo-linha strong { color: var(--brand); margin-left: 2px; }
+.est-resumo-ruptura {
+  background: var(--red-bg); color: var(--red);
+  border: 1px solid #fca5a5; border-radius: 20px;
+  padding: 4px 10px; font-size: 12px; font-weight: 600;
+}
+.est-btn-editar {
+  background: none; border: 1px solid var(--border2);
+  border-radius: 20px; padding: 4px 10px;
+  font-size: 11px; color: var(--text3); cursor: pointer;
+  margin-left: auto;
+}
+.est-btn-editar:active { background: var(--surface2); }
+
+/* Barra similar pendente (após confirmar produto) */
+.sim-toggle-pendente {
+  background: var(--amber-bg) !important;
+  border-color: #fcd34d !important;
+  animation: pulseAmber 1.5s ease-in-out 3;
+}
+.sim-toggle-pendente .sim-toggle-txt { color: var(--amber) !important; }
+@keyframes pulseAmber {
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: 0 0 0 3px rgba(217,119,6,.25); }
+}
+
+/* Barra similar confirmada */
+.sim-toggle-confirmado {
+  background: var(--green-bg) !important;
+  border-color: #86efac !important;
+}
+.sim-toggle-confirmado .sim-toggle-txt { color: var(--green) !important; }
+
+/* Botão confirmar similares */
+.btn-confirmar-similar {
+  width: 100%; padding: 10px;
+  background: var(--green); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; margin-top: 10px;
+  transition: background .15s;
+}
+.btn-confirmar-similar:active { background: #15803d; }
+
+/* SKU concorrente — exibido como tag fixa, não editável pelo promotor */
+.sim-sku-fixo {
+  font-size: 10px; font-weight: 600;
+  color: var(--text3); font-family: 'DM Mono', monospace;
+  background: var(--surface2); border: 1px solid var(--border);
+  padding: 1px 6px; border-radius: 4px;
+  margin-left: 4px;
+}
+
+/* Fornecedor — exibido acima do nome do produto */
+.est-fornecedor {
+  font-size: 10px; font-weight: 700;
+  color: var(--brand); text-transform: uppercase;
+  letter-spacing: .04em; margin-bottom: 2px;
+}
+
+/* Código da empresa (cliente) — visualmente distinto do código do fornecedor */
+.est-sku-empresa {
+  color: var(--text2);
+  background: var(--surface2);
+  border-color: var(--border2);
+}
+
+/* ══════════════════════════════════════════════
+   HOME — Top vendidos e Sem giro
+══════════════════════════════════════════════ */
+
+/* Linha do ranking de produto vendido */
+.rank-prod-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.rank-prod-row:last-child { border-bottom: none; }
+.rank-prod-pos {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--brand-bg); color: var(--brand);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+}
+.rank-prod-info { flex: 1; min-width: 0; }
+.rank-prod-nome {
+  font-size: 12px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+.rank-prod-bar {
+  height: 5px; background: var(--surface2);
+  border-radius: 99px; overflow: hidden;
+}
+.rank-prod-fill {
+  height: 100%; background: var(--green);
+  border-radius: 99px; transition: width .4s;
+}
+.rank-prod-valor {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px; font-weight: 700; color: var(--green);
+  flex-shrink: 0; min-width: 28px; text-align: right;
+}
+
+/* Linha de produto sem giro */
+.semgiro-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.semgiro-row:last-child { border-bottom: none; }
+.semgiro-icon { font-size: 16px; flex-shrink: 0; }
+.semgiro-info { flex: 1; min-width: 0; }
+.semgiro-nome {
+  font-size: 12px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.semgiro-det { font-size: 10px; color: var(--amber); margin-top: 1px; }
+
+/* ══════════════════════════════════════════════
+   DESEMPENHO — badges de status
+══════════════════════════════════════════════ */
+.badge-oficial {
+  font-size: 10px; font-weight: 700;
+  color: var(--brand); background: var(--brand-bg);
+  border: 1px solid var(--brand-mid);
+  padding: 3px 9px; border-radius: 20px;
+}
+.badge-projecao {
+  font-size: 10px; font-weight: 700;
+  color: var(--text3); background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 3px 9px; border-radius: 20px;
+}
