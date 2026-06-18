@@ -946,16 +946,17 @@ async function salvarAvaria() {
   if (!pid || !qty || !tipo) { toast('Preencha produto, quantidade e tipo', 'red'); return; }
   if (!_lojaId) { toast('Selecione uma loja', 'red'); return; }
 
-  let foto_url = null;
-  const fotoInput = el('av-foto-input');
-  if (fotoInput.files[0]) {
-    foto_url = await uploadFoto(fotoInput.files[0], 'avarias');
-  }
-
   const prod = _produtos.find(p => p.id === pid);
   const valor = (prod?.preco_sugerido || 0) * qty;
 
   try {
+    let foto_url = null;
+    const fotoInput = el('av-foto-input');
+    if (fotoInput.files[0]) {
+      toast('Enviando foto...');
+      foto_url = await uploadFoto(fotoInput.files[0], 'avarias');
+    }
+
     await supa('avarias', {
       method: 'POST',
       body: {
@@ -1010,17 +1011,39 @@ async function carregarAvarias() {
 
 // ─── UPLOAD FOTO ─────────────────────────────
 async function uploadFoto(file, bucket) {
-  const nome = `${_user.empresa_id}/${_lojaId}/${Date.now()}_${file.name}`;
+  // Sanitiza o nome do arquivo: remove espaços, acentos e caracteres especiais
+  const nomeOriginal = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const nomeLimpo = nomeOriginal.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+  const nome = `${_user.empresa_id}/${_lojaId}/${Date.now()}_${nomeLimpo}`;
+
   const res = await fetch(`${SUPA_URL}/storage/v1/object/${bucket}/${nome}`, {
     method: 'POST',
     headers: {
       'apikey': SUPA_ANON,
       'Authorization': `Bearer ${_token || SUPA_ANON}`,
-      'Content-Type': file.type
+      'Content-Type': file.type || 'application/octet-stream'
     },
     body: file
   });
-  if (!res.ok) throw new Error('Falha no upload da foto');
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    let msg = `Falha no upload (HTTP ${res.status})`;
+    try {
+      const errJson = JSON.parse(errText);
+      msg = errJson.message || errJson.error || msg;
+    } catch(e) {
+      if (errText) msg = errText;
+    }
+    // Mensagens mais claras para os erros mais comuns
+    if (res.status === 400 && /bucket/i.test(msg)) {
+      msg = `Bucket "${bucket}" não existe no Supabase Storage. Crie-o em Storage → New bucket.`;
+    }
+    if (res.status === 404) {
+      msg = `Bucket "${bucket}" não encontrado. Verifique o nome no Supabase Storage.`;
+    }
+    throw new Error(msg);
+  }
   return `${SUPA_URL}/storage/v1/object/public/${bucket}/${nome}`;
 }
 
