@@ -162,6 +162,45 @@ function atualizarHome() {
   atualizarData();
   carregarResumoHome();
   carregarInteligenciaProdutos();
+  carregarMetaCardHome();
+}
+
+async function carregarMetaCardHome() {
+  const container = el('home-meta-resumo');
+  if (!container) return;
+  if (!_lojaId) {
+    container.innerHTML = '<div style="font-size:12px;color:var(--text3)">Selecione uma loja para ver sua meta.</div>';
+    return;
+  }
+  const periodo = anoMes();
+  try {
+    const [metas, lancamentos] = await Promise.all([
+      supa(`desempenho?promotor_id=eq.${_user.id}&loja_id=eq.${_lojaId}&periodo=eq.${periodo}&select=*`),
+      supa(`estoque_lancamentos?loja_id=eq.${_lojaId}&promotor_id=eq.${_user.id}&data=gte.${periodo}-01&select=qtd_vendida,preco`)
+    ]);
+    const metaRow = metas?.[0];
+    const valorProjetado = (lancamentos || []).reduce((s, l) => s + (Number(l.qtd_vendida) || 0) * (Number(l.preco) || 0), 0);
+
+    if (!metaRow) {
+      container.innerHTML = `<div style="font-size:12px;color:var(--text3)">Nenhuma meta cadastrada. Projeção até agora: <strong style="color:var(--green)">${moeda(valorProjetado)}</strong></div>`;
+      return;
+    }
+
+    const meta = Number(metaRow.meta) || 0;
+    const ehOficial = metaRow.tipo_realizado === 'oficial';
+    const valorAtual = ehOficial ? Number(metaRow.realizado) : valorProjetado;
+    const pct = meta > 0 ? Math.min(100, (valorAtual / meta * 100)) : 0;
+
+    container.innerHTML = `
+      <div class="meta-bar-wrap" style="margin:0">
+        <div class="meta-lbl"><span>${moeda(valorAtual)} de ${moeda(meta)}</span><span>${pct.toFixed(0)}%</span></div>
+        <div class="meta-bar"><div class="meta-fill" style="width:${pct}%"></div></div>
+      </div>
+    `;
+  } catch(e) {
+    container.innerHTML = '<div style="font-size:12px;color:var(--text3)">Não foi possível carregar.</div>';
+    console.warn('Meta card home:', e);
+  }
 }
 
 function atualizarData() {
@@ -1348,6 +1387,7 @@ function selecionarLoja(id, nome) {
   });
   carregarResumoHome();
   carregarInteligenciaProdutos();
+  carregarMetaCardHome();
   if (el('sc-desempenho')?.style.display === 'flex') carregarDesempenho();
 }
 
