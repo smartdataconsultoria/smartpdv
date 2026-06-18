@@ -1078,3 +1078,19 @@ input, select, textarea, button { font-family: inherit; }
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .semgiro-det { font-size: 10px; color: var(--amber); margin-top: 1px; }
+
+/* ══════════════════════════════════════════════
+   DESEMPENHO — badges de status
+══════════════════════════════════════════════ */
+.badge-oficial {
+  font-size: 10px; font-weight: 700;
+  color: var(--brand); background: var(--brand-bg);
+  border: 1px solid var(--brand-mid);
+  padding: 3px 9px; border-radius: 20px;
+}
+.badge-projecao {
+  font-size: 10px; font-weight: 700;
+  color: var(--text3); background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 3px 9px; border-radius: 20px;
+}
