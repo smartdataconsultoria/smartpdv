@@ -1094,3 +1094,72 @@ input, select, textarea, button { font-family: inherit; }
   border: 1px solid var(--border);
   padding: 3px 9px; border-radius: 20px;
 }
+
+/* ══════════════════════════════════════════════
+   BÔNUS POR PRODUTO
+══════════════════════════════════════════════ */
+
+.bonus-card {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.bonus-card-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 10px;
+}
+.bonus-produto-nome {
+  font-size: 14px; font-weight: 700; color: var(--text);
+  margin-bottom: 4px;
+}
+.bonus-valor-ganho { text-align: right; flex-shrink: 0; }
+.bonus-valor {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.3rem; font-weight: 700; color: var(--green);
+}
+.bonus-valor-label {
+  font-size: 10px; color: var(--text3); margin-top: -2px;
+}
+.bonus-valor-zero {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.1rem; font-weight: 700; color: var(--text3);
+}
+
+.bonus-progress-wrap { display: flex; flex-direction: column; gap: 6px; }
+.bonus-progress-lbl {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: var(--text2);
+}
+.bonus-bar {
+  position: relative;
+  height: 10px; background: var(--surface2);
+  border-radius: 99px; overflow: visible;
+}
+.bonus-bar-fill {
+  height: 100%; border-radius: 99px;
+  transition: width .4s;
+}
+.bonus-marker-super {
+  position: absolute; top: -3px; bottom: -3px;
+  width: 2px; background: var(--brand);
+  transform: translateX(-50%);
+}
+.bonus-marker-super::after {
+  content: '🚀';
+  position: absolute; top: -16px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+}
+
+.bonus-status-txt {
+  font-size: 12px; font-weight: 600;
+}
+.bonus-super-hint {
+  font-size: 11px; color: var(--brand);
+  background: var(--brand-bg); border: 1px solid var(--brand-light);
+  border-radius: var(--radius-xs); padding: 8px 10px;
+}
+.bonus-oficial-tag {
+  font-size: 11px; font-weight: 600; color: var(--brand);
+  background: var(--brand-bg); border: 1px solid var(--brand-mid);
+  border-radius: 20px; padding: 4px 10px;
+  display: inline-block; align-self: flex-start;
+}
