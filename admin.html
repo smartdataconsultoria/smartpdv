@@ -956,6 +956,7 @@ function navAdmin(pg) {
   });
   const titles = { dashboard:'Dashboard', empresas:'Empresas', promotores:'Promotores', lojas:'Lojas / PDVs', produtos:'Produtos', similares:'Similares', metas:'Metas de venda', bonus:'Bônus por produto', acessos:'Acessos' };
   document.getElementById('topbar-title').textContent = titles[pg] || pg;
+  if (pg === 'empresas')   renderEmpresas();
   if (pg === 'promotores') renderPromotores();
   if (pg === 'lojas')      renderLojas();
   if (pg === 'produtos')   renderProdutos();
